@@ -254,7 +254,7 @@ export const Dashboard: React.FC = () => {
                 });
                 queryClient.invalidateQueries({ queryKey: ['playerState', teamId] });
             } else {
-                toast.error(typeof data === 'string' ? data : (data.error || '儲存失敗'));
+                toast.error('儲存失敗');
             }
             setIsSaving(false);
         },

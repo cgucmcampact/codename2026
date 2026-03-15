@@ -12,7 +12,7 @@ export const BattleLobby: React.FC = () => {
     const [currentBattleId, setCurrentBattleId] = useState<string | null>(null);
 
     // Fetch Team List
-    const { data: teamsData, isLoading, error } = useQuery({
+    const { data: teamsData, isLoading } = useQuery({
         queryKey: ['teamsList'],
         queryFn: async () => {
             console.log('Fetching teams list...');
