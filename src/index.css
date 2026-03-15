@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root {
+  --color-bg: #1a1a2e;
+  /* Dark Blue */
+  --color-panel: #16213e;
+  /* Slightly lighter */
+  --color-primary: #0f3460;
+  --color-accent: #e94560;
+  /* Red/Pink */
+  --color-text: #ffffff;
+  --color-success: #00b894;
+  --color-warning: #fdcb6e;
+
+  --font-pixel: 'Press Start 2P', cursive;
+  --font-retro: 'VT323', monospace;
+
+  --pixel-border: 4px solid #000;
+  --pixel-shadow: 4px 4px 0px #000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-retro);
+  /* Default readable pixel font */
+  font-size: 20px;
+  -webkit-font-smoothing: none;
+  /* Crucial for pixel art crispness */
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-pixel);
+  text-transform: uppercase;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  border: var(--pixel-border);
+  background-color: var(--color-accent);
+  color: #fff;
+  padding: 10px 15px;
+  box-shadow: var(--pixel-shadow);
+  transition: transform 0.1s;
+}
+
+button:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+input,
+select {
+  font-family: var(--font-retro);
+  font-size: 1.2rem;
+  padding: 8px;
+  border: var(--pixel-border);
+  background: #fff;
+  color: #000;
+}
+
+.pixel-box {
+  background: var(--color-panel);
+  border: var(--pixel-border);
+  padding: 20px;
+  box-shadow: var(--pixel-shadow);
+  margin-bottom: 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+}
+
+.loading-bar {
+  height: 4px;
+  background-color: var(--color-accent);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background-color: #fff;
+  animation: loading 1.5s infinite ease-in-out;
+}
+
+@keyframes loading {
+  0% {
+    left: -50%;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
