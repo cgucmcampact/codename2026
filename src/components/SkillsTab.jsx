@@ -19,6 +19,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
   const [scanError, setScanError] = useState('');
   const [scanSuccess, setScanSuccess] = useState('');
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [rewardMessage, setRewardMessage] = useState('');
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -130,7 +131,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
       const res = await ApiService.claimQrCode(player.id, token);
       if (res.success) {
         setScannerOpen(false);
-        alert(res.message || '兌換成功！');
+        setRewardMessage(res.message || '兌換成功！');
         onPlayerUpdate(res.player);
       }
     } catch (err) {
@@ -150,7 +151,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
       const res = await ApiService.claimQrCode(player.id, manualToken.trim());
       if (res.success) {
         setScannerOpen(false);
-        alert(res.message || '兌換成功！');
+        setRewardMessage(res.message || '兌換成功！');
         setManualToken('');
         onPlayerUpdate(res.player);
       }
@@ -757,6 +758,35 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
           document.body
         );
       })()}
+      
+      {/* 獲得獎勵浮動彈窗 */}
+      {rewardMessage && createPortal(
+        <div className="tcm-modal-overlay" style={{ zIndex: 1000 }}>
+          <div className="glass-panel p-6 max-w-xs w-full text-center space-y-4 border-2 border-amber-500/40 relative animate-scaleUp" onClick={e => e.stopPropagation()}>
+            <div className="text-amber-500 flex justify-center">
+              <Sparkles size={32} className="animate-bounce" />
+            </div>
+            <h3 className="text-base font-bold text-gray-100 font-serif">
+              🎉 醫道修煉機緣
+            </h3>
+            <p className="text-[9px] text-amber-700 uppercase tracking-widest font-mono font-bold">
+              New Fortune Acquired
+            </p>
+            <div className="py-2.5 px-3 bg-black/40 border border-amber-950/40 rounded-lg">
+              <p className="text-xs text-amber-100 font-serif leading-relaxed">
+                {rewardMessage}
+              </p>
+            </div>
+            <button
+              onClick={() => setRewardMessage('')}
+              className="btn-neon w-full py-2 text-xs font-bold font-serif"
+            >
+              收下獎勵
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
