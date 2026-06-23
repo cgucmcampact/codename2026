@@ -67,22 +67,45 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
   async function startCamera() {
     setScanError('');
     setScanSuccess('');
+    
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setIsCameraActive(false);
+      setScanError('您的瀏覽器或 App 內建瀏覽器（如 LINE）不支援相機掃描。請點擊右上角以 Safari 或 Chrome 開啟網頁，或使用下方「手動輸入兌換」。');
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }
       });
       streamRef.current = stream;
+      
+      // 輪詢等待 videoRef.current 掛載成功，保證相機畫面能正確顯示
+      for (let i = 0; i < 10; i++) {
+        if (videoRef.current) break;
+        await new Promise(r => setTimeout(r, 50));
+      }
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.setAttribute('playsinline', 'true');
-        videoRef.current.play();
+        videoRef.current.setAttribute('muted', 'true');
+        videoRef.current.muted = true;
+        videoRef.current.play().catch(err => console.warn("video play pending:", err));
         setIsCameraActive(true);
         startDecoding();
+      } else {
+        console.error("videoRef is still null");
+        setScanError('無法載入相機視窗。');
       }
     } catch (err) {
       console.error('Camera open failed:', err);
       setIsCameraActive(false);
-      setScanError('無法啟用相機，請檢查權限或改用手動輸入兌換。');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setScanError('相機權限被拒絕，請檢查瀏覽器設定，允許此網頁存取相機。');
+      } else {
+        setScanError('無法啟用相機，請確認設備有後置鏡頭，或使用下方「手動輸入兌換」。');
+      }
     }
   }
 
@@ -139,7 +162,8 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
     try {
       const res = await ApiService.claimQrCode(player.id, token);
       if (res.success) {
-        setScanSuccess(`🎉 ${res.message}`);
+        setScannerOpen(false);
+        alert(res.message || '兌換成功！');
         onPlayerUpdate(res.player);
       }
     } catch (err) {
@@ -158,7 +182,8 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
     try {
       const res = await ApiService.claimQrCode(player.id, manualToken.trim());
       if (res.success) {
-        setScanSuccess(`🎉 ${res.message}`);
+        setScannerOpen(false);
+        alert(res.message || '兌換成功！');
         setManualToken('');
         onPlayerUpdate(res.player);
       }
@@ -375,14 +400,15 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
     <div className="space-y-6 flex flex-col items-center">
       
       {/* 兌換藥貼按鈕（置中） */}
-      <div className="flex justify-center w-full pb-2">
+      <div className="w-full flex justify-center" style={{ marginBottom: '16px' }}>
         <button
           id="btn-claim-qr"
           onClick={() => setScannerOpen(true)}
           className="btn-neon py-2.5 px-6 text-xs font-bold flex items-center justify-center gap-1.5"
+          style={{ height: '36px', boxSizing: 'border-box' }}
         >
           <QrCode size={14} />
-          兌換藥貼 (掃描 QR Code)
+          掃描QR Code
         </button>
       </div>
 
@@ -570,18 +596,17 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
 
             {/* 影像掃描區 */}
             <div className="relative aspect-video bg-black rounded-lg overflow-hidden border border-amber-950 flex items-center justify-center">
-              {isCameraActive ? (
-                <video
-                  ref={videoRef}
-                  className="w-full h-full object-cover"
-                ></video>
-              ) : (
+              <video
+                ref={videoRef}
+                className={`w-full h-full object-cover ${isCameraActive ? 'block' : 'hidden'}`}
+                playsInline
+              ></video>
+              {!isCameraActive && (
                 <div className="text-center text-gray-600 space-y-1 p-4">
                   <CameraOff size={24} className="mx-auto opacity-50 text-amber-600" />
                   <p className="text-[10px] font-serif">相機未啟用</p>
                 </div>
               )}
-              {/* 四角框標記線 */}
               {isCameraActive && (
                 <div className="absolute inset-4 border-2 border-dashed border-amber-500/40 rounded pointer-events-none animate-pulse"></div>
               )}

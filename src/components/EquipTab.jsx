@@ -162,7 +162,8 @@ export default function EquipTab({ player, onPlayerUpdate }) {
     try {
       const res = await ApiService.claimQrCode(player.id, token);
       if (res.success) {
-        setScanSuccess(`🎉 ${res.message}`);
+        setScannerOpen(false);
+        alert(res.message || '兌換成功！');
         onPlayerUpdate(res.player);
       }
     } catch (err) {
@@ -181,7 +182,8 @@ export default function EquipTab({ player, onPlayerUpdate }) {
     try {
       const res = await ApiService.claimQrCode(player.id, manualToken.trim());
       if (res.success) {
-        setScanSuccess(`🎉 ${res.message}`);
+        setScannerOpen(false);
+        alert(res.message || '兌換成功！');
         setManualToken('');
         onPlayerUpdate(res.player);
       }
