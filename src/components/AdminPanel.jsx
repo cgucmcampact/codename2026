@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { CARDS } from '../services/cardData';
 import { ApiService } from '../services/api';
-import { 
-  QrCode, Clipboard, Check, RefreshCw, 
+import {
+  QrCode, Clipboard, Check, RefreshCw,
   User, ShieldCheck, Key, Info, Copy
 } from 'lucide-react';
 
@@ -29,8 +29,8 @@ export default function AdminPanel({ player }) {
     if (generatedToken && canvasRef.current) {
       const claimUrl = `${window.location.origin}${window.location.pathname}?action=claim&token=${generatedToken}&card_id=${selectedCardId}`;
       QRCode.toCanvas(
-        canvasRef.current, 
-        claimUrl, 
+        canvasRef.current,
+        claimUrl,
         {
           width: 180,
           margin: 1.5,
@@ -38,7 +38,7 @@ export default function AdminPanel({ player }) {
             dark: '#1e1b4b', // 暗藍色
             light: '#ffffff' // 白色背景
           }
-        }, 
+        },
         (err) => {
           if (err) console.error("QR Draw Error:", err);
         }
@@ -54,7 +54,7 @@ export default function AdminPanel({ player }) {
       if (res.success) {
         const qList = res.quotas || [];
         setQuotas(qList);
-        
+
         const activeList = qList.length > 0 ? qList : Object.keys(CARDS).map(cid => ({ card_id: cid, quota: '無限' }));
         if (activeList.length > 0) {
           const activeQ = activeList.find(q => q.quota === '無限' || Number(q.quota) > 0);
@@ -136,14 +136,14 @@ export default function AdminPanel({ player }) {
 
   return (
     <div className="space-y-6 flex flex-col items-center justify-center text-center w-full max-w-full">
-      
+
       <div className="flex flex-col items-center justify-center text-center max-w-md">
         <h2 className="text-xl font-bold text-gray-100 flex items-center justify-center gap-2 font-serif">
           <ShieldCheck size={22} className="text-amber-500" />
-          分藥大掌櫃認證主控台
+          工作人員主控台
         </h2>
         <p className="text-xs text-gray-400 mt-1.5 leading-relaxed font-serif">
-          在此可執行管理功能：生成藥貼/方劑香箋 QR Code 供弟子掃描領取，以及監控所有試藥弟子的百子櫃任務代碼。
+          在此可執行管理功能：生成卡片 QR Code 供小隊掃描領取，以及查看小隊任務通關代碼。
         </p>
       </div>
 
@@ -162,12 +162,12 @@ export default function AdminPanel({ player }) {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-5xl">
-        
+
         {/* 1. QR Code 領卡生成器 */}
         <div className="glass-panel p-6 border-gray-800 space-y-4 flex flex-col items-center text-center w-full max-w-full overflow-hidden">
           <h3 className="text-sm font-bold text-gray-300 flex items-center justify-center gap-1.5 border-b border-gray-900 pb-3 w-full">
             <QrCode size={16} className="text-purple-400" />
-            卡牌 QR Code 線上生成器
+            卡牌 QR Code 生成器
           </h3>
 
           <div className="w-full flex flex-col items-center">
@@ -187,9 +187,9 @@ export default function AdminPanel({ player }) {
                   const card = CARDS[q.card_id];
                   const hasQuota = q.quota === '無限' || Number(q.quota) > 0;
                   return (
-                    <option 
-                      key={q.card_id} 
-                      value={q.card_id} 
+                    <option
+                      key={q.card_id}
+                      value={q.card_id}
                       disabled={!hasQuota}
                       className={!hasQuota ? 'text-gray-600' : ''}
                     >
@@ -261,7 +261,7 @@ export default function AdminPanel({ player }) {
           <div className="max-h-[320px] overflow-y-auto pr-1 space-y-3 w-full">
             {playerTasks.length === 0 ? (
               <div className="py-16 text-center text-gray-600 text-xs w-full">
-                目前沒有任何玩家正在進行小任務
+                目前沒有任何玩家在進行小任務
               </div>
             ) : (
               playerTasks.map((pt, idx) => (
@@ -280,10 +280,10 @@ export default function AdminPanel({ player }) {
                     {pt.tasks.map((task, tIdx) => {
                       const gridName = tasksConfig.find(c => c.grid_index === task.grid_index)?.name;
                       const taskDisplayName = gridName ? `藥斗 #${task.grid_index + 1} (${gridName})` : `藥斗 #${task.grid_index + 1}`;
-                      
+
                       return (
-                        <div 
-                          key={tIdx} 
+                        <div
+                          key={tIdx}
                           className="bg-black/40 border border-gray-900 rounded p-2 flex flex-col sm:flex-row items-center justify-between text-xs font-mono gap-2 w-full"
                         >
                           <div className="flex items-center gap-1.5 justify-center">
@@ -306,7 +306,7 @@ export default function AdminPanel({ player }) {
                               <Info size={13} />
                             </button>
                           </div>
-                          
+
                           <button
                             onClick={() => setShowCodeModal({ taskName: taskDisplayName, code: task.password })}
                             className="btn-outline py-0.5 px-2 text-[10px] text-yellow-500 border-yellow-500/20 hover:bg-yellow-950/20 font-bold w-full sm:w-auto text-center"
@@ -331,7 +331,7 @@ export default function AdminPanel({ player }) {
           <div className="tcm-floating-invite-card glass-panel glass-panel-neon p-6 space-y-4 max-w-md w-11/12 text-center animate-fade-in">
             <div className="text-center space-y-2">
               <h3 className="text-lg font-bold text-amber-400 font-serif">
-                【{selectedDetailTask.name}】規則與草藥常識
+                【{selectedDetailTask.name}】小任務規則
               </h3>
               <div className="text-xs text-gray-300 font-serif leading-relaxed text-left whitespace-pre-line max-h-60 overflow-y-auto p-3 bg-black/40 rounded border border-gray-900">
                 {selectedDetailTask.detail}
@@ -356,7 +356,7 @@ export default function AdminPanel({ player }) {
           <div className="tcm-floating-invite-card glass-panel glass-panel-neon p-6 space-y-4 max-w-sm w-11/12 text-center animate-fade-in">
             <div className="text-center space-y-2">
               <h3 className="text-sm font-bold text-amber-400 font-serif">通關代碼已產生 - {showCodeModal.taskName}</h3>
-              <p className="text-[11px] text-gray-400 font-serif">請將此通關代碼交給弟子輸入以通過挑戰：</p>
+              <p className="text-[11px] text-gray-400 font-serif">請將此通關代碼交給小隊輸入以通過挑戰：</p>
               <div className="font-mono text-lg text-yellow-300 font-bold bg-yellow-950/40 p-3 rounded border border-yellow-800/30 tracking-widest select-all">
                 {showCodeModal.code}
               </div>

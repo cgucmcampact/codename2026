@@ -9,8 +9,8 @@ import InventoryTab from './components/InventoryTab';
 import AdminPanel from './components/AdminPanel';
 import GameAdminPanel from './components/GameAdminPanel';
 import Login from './components/Login';
-import { 
-  Swords, Sparkles, Trophy, ShieldAlert, 
+import {
+  Swords, Sparkles, Trophy, ShieldAlert,
   LogOut, ShieldCheck, Settings2, Briefcase, BellRing, Leaf
 } from 'lucide-react';
 
@@ -31,12 +31,12 @@ function getPendingClaimCardIdFromUrl() {
 }
 
 const TAB_TITLES = {
-  inventory: '背包',
+  inventory: '任務',
   equip: '裝備',
   skills: '技能',
-  battle: '戰鬥',
-  admin: '分藥面板',
-  game_admin: '大掌櫃面板'
+  battle: '切磋大廳',
+  admin: '卡片面板',
+  game_admin: '管理員面板'
 };
 
 export default function App() {
@@ -45,7 +45,7 @@ export default function App() {
   const [pendingClaimToken, setPendingClaimToken] = useState(() => getPendingClaimTokenFromUrl());
   const [pendingClaimCardId, setPendingClaimCardId] = useState(() => getPendingClaimCardIdFromUrl());
   const [claimModalMessage, setClaimModalMessage] = useState(null); // { text, type, cardId }
-  
+
   const [receivedInvitation, setReceivedInvitation] = useState(null);
   const [alertMessage, setAlertMessage] = useState(null);
   const [inviteTimeLeft, setInviteTimeLeft] = useState(30);
@@ -118,13 +118,13 @@ export default function App() {
 
   // 2. 登入後自動處理 Pending 的代幣，並監聽對戰邀請廣播
   useEffect(() => {
-    let unregisterBroadcast = () => {};
+    let unregisterBroadcast = () => { };
 
     if (player) {
       if (pendingClaimToken) {
         handleAutoClaimToken(pendingClaimToken, pendingClaimCardId);
       }
-      
+
       invitationCheckInterval.current = setInterval(() => {
         checkInboundInvitations();
       }, 3500);
@@ -133,8 +133,8 @@ export default function App() {
         if (getApiMode() === 'local') {
           if (data.type === 'INVITE' && String(data.receiver_id || '').toLowerCase() === String(player.id || '').toLowerCase()) {
             if (
-              isRespondingInviteRef.current || 
-              activeBattleIdRef.current || 
+              isRespondingInviteRef.current ||
+              activeBattleIdRef.current ||
               receivedInvitationRef.current ||
               hasSentInvitationRef.current
             ) {
@@ -148,7 +148,7 @@ export default function App() {
             });
           }
         }
-      }) || (() => {});
+      }) || (() => { });
     } else {
       clearInterval(invitationCheckInterval.current);
     }
@@ -374,7 +374,7 @@ export default function App() {
   return (
     <div className="tcm-lobby-container">
       <div className={`tcm-lobby-shell glass-panel glass-panel-neon ${isInBattle ? 'tcm-battle-mode-shell' : ''}`}>
-        
+
         {/* 大廳頁首 */}
         <header className="tcm-lobby-header flex flex-col gap-4">
           {activeTab === 'lobby' ? (
@@ -387,9 +387,9 @@ export default function App() {
                   </div>
                   <div className="text-center">
                     <h1 className="text-lg md:text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-600 font-mono">
-                      百草醫館
+                      靈獸培育空間
                     </h1>
-                    <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">Apothecary Training Ground</p>
+                    <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">Spirit Beast Training Ground</p>
                   </div>
                 </div>
               </div>
@@ -404,7 +404,7 @@ export default function App() {
                   className="btn-outline w-full py-2 text-[12px] flex items-center justify-center gap-1.5 hover:text-red-400 hover:border-red-500/30"
                 >
                   <LogOut size={12} />
-                  退出醫館
+                  離開培育空間
                 </button>
               </div>
             </>
@@ -426,7 +426,7 @@ export default function App() {
                   </button>
                 )}
               </div>
-              
+
               {!(activeTab === 'battle' && activeBattleId) && (
                 <div className="text-center w-full">
                   <h1 className="text-2xl md:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-600 font-mono">
@@ -448,16 +448,16 @@ export default function App() {
               {/* 選單網格 */}
               {player.role === 'player' && (
                 <div className="tcm-lobby-grid">
-                  <button 
+                  <button
                     id="btn-menu-inventory"
                     onClick={() => setActiveTab('inventory')}
                     className="tcm-lobby-grid-btn"
                   >
                     <span className="tcm-lobby-btn-icon text-amber-400"><Briefcase size={28} /></span>
-                    <span className="tcm-lobby-btn-text">背包</span>
+                    <span className="tcm-lobby-btn-text">任務</span>
                   </button>
 
-                  <button 
+                  <button
                     id="btn-menu-equip"
                     onClick={() => setActiveTab('equip')}
                     className="tcm-lobby-grid-btn"
@@ -466,7 +466,7 @@ export default function App() {
                     <span className="tcm-lobby-btn-text">裝備</span>
                   </button>
 
-                  <button 
+                  <button
                     id="btn-menu-skills"
                     onClick={() => setActiveTab('skills')}
                     className="tcm-lobby-grid-btn"
@@ -475,7 +475,7 @@ export default function App() {
                     <span className="tcm-lobby-btn-text">技能</span>
                   </button>
 
-                  <button 
+                  <button
                     id="btn-menu-battle"
                     onClick={() => {
                       setActiveTab('battle');
@@ -488,42 +488,42 @@ export default function App() {
                     className="tcm-lobby-grid-btn"
                   >
                     <span className="tcm-lobby-btn-icon text-red-400"><Trophy size={28} /></span>
-                    <span className="tcm-lobby-btn-text">戰鬥</span>
+                    <span className="tcm-lobby-btn-text">切磋</span>
                   </button>
                 </div>
               )}
 
               {player.role === 'game_admin' && (
                 <div className="tcm-lobby-grid grid-cols-1">
-                  <button 
+                  <button
                     id="btn-menu-admin"
                     onClick={() => setActiveTab('admin')}
                     className="tcm-lobby-grid-btn py-6 flex flex-col items-center justify-center gap-2"
                   >
                     <span className="tcm-lobby-btn-icon text-amber-400"><ShieldCheck size={36} /></span>
-                    <span className="tcm-lobby-btn-text text-sm">分藥面板</span>
+                    <span className="tcm-lobby-btn-text text-sm">卡片面板</span>
                   </button>
                 </div>
               )}
 
               {player.role === 'admin' && (
                 <div className="tcm-lobby-grid">
-                  <button 
+                  <button
                     id="btn-menu-admin"
                     onClick={() => setActiveTab('admin')}
                     className="tcm-lobby-grid-btn py-5 flex flex-col items-center justify-center gap-2"
                   >
                     <span className="tcm-lobby-btn-icon text-amber-400"><ShieldCheck size={32} /></span>
-                    <span className="tcm-lobby-btn-text text-sm">分藥面板</span>
+                    <span className="tcm-lobby-btn-text text-sm">卡片面板</span>
                   </button>
 
-                  <button 
+                  <button
                     id="btn-menu-game-admin"
                     onClick={() => setActiveTab('game_admin')}
                     className="tcm-lobby-grid-btn py-5 flex flex-col items-center justify-center gap-2"
                   >
                     <span className="tcm-lobby-btn-icon text-red-400"><Settings2 size={32} /></span>
-                    <span className="tcm-lobby-btn-text text-sm">大掌櫃面板</span>
+                    <span className="tcm-lobby-btn-text text-sm">管理員面板</span>
                   </button>
                 </div>
               )}
@@ -540,9 +540,9 @@ export default function App() {
                 <SkillsTab player={player} onPlayerUpdate={handlePlayerUpdate} />
               )}
               {activeTab === 'battle' && (
-                <BattleTab 
-                  player={player} 
-                  onPlayerUpdate={handlePlayerUpdate} 
+                <BattleTab
+                  player={player}
+                  onPlayerUpdate={handlePlayerUpdate}
                   activeBattleId={activeBattleId}
                   onClearBattleId={() => setActiveBattleId(null)}
                   onStartBattle={(id) => {
@@ -567,7 +567,7 @@ export default function App() {
         {/* 頁尾 */}
         {!isInBattle && (
           <footer className="py-4 border-t border-amber-955/30 text-center text-xs text-gray-500 font-serif bg-black/10 mt-4">
-            <p>© 2026 百草醫館修煉場 Apothecary Training Ground.</p>
+            <p>© 2026 靈獸培育空間 Spirit Beast Training Ground.</p>
           </footer>
         )}
 
@@ -583,7 +583,7 @@ export default function App() {
               </div>
               <h3 className="text-lg font-bold text-gray-200 font-serif">收到切磋邀請</h3>
               <p className="text-sm text-gray-400 leading-relaxed font-serif text-center">
-                同道 <span className="text-amber-400 font-bold">[ {receivedInvitation.sender_name} ]</span> 向你發起醫道切磋...
+                同道 <span className="text-amber-400 font-bold">[ {receivedInvitation.sender_name} ]</span> 向你發起靈獸切磋...
                 <br />
                 <span className="text-xs text-rose-400 font-bold mt-1 block">(剩餘考慮時間：{inviteTimeLeft} 秒)</span>
               </p>
@@ -637,22 +637,22 @@ export default function App() {
               } else {
                 rewardCards = detectRewardCards(claimModalMessage.text);
               }
-              
+
               if (rewardCards.length === 0) return null;
               return (
                 <div className="tcm-claim-card-scroll-area">
                   {rewardCards.map(card => {
                     const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
                     return (
-                      <div 
+                      <div
                         key={card.id}
                         className={`game-card border ${cardRarity.border} ${cardRarity.shadow} relative overflow-hidden bg-black/55 rounded-lg mx-auto flex-shrink-0`}
                         style={{ width: '180px', height: '80px', minHeight: 'auto', padding: '0' }}
                       >
                         {card.image_url ? (
-                          <img 
-                            src={convertGoogleDriveUrl(card.image_url)} 
-                            alt={card.name} 
+                          <img
+                            src={convertGoogleDriveUrl(card.image_url)}
+                            alt={card.name}
                             className="absolute inset-0 w-full h-full object-cover flex-shrink-0"
                             style={{ objectFit: 'cover' }}
                           />
@@ -661,7 +661,7 @@ export default function App() {
                             <Leaf size={24} className="text-amber-600/30 animate-pulse" />
                           </div>
                         )}
-                        <div 
+                        <div
                           className="absolute bottom-0 left-0 right-0 bg-black/75 py-1 px-1.5 flex flex-col items-center justify-center text-center border-t border-amber-500/10 leading-none z-10"
                           style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
                         >
@@ -699,7 +699,7 @@ export default function App() {
               <div className="inline-flex p-3 rounded-full bg-rose-955/40 text-rose-400 border border-rose-500/20 animate-pulse mx-auto">
                 <ShieldAlert size={24} className="shrink-0" />
               </div>
-              <h3 className="text-lg font-bold text-gray-200 font-serif">醫館提示</h3>
+              <h3 className="text-lg font-bold text-gray-200 font-serif">培育空間提示</h3>
               <p className="text-sm text-gray-400 leading-relaxed font-serif text-center">{alertMessage}</p>
             </div>
             <div className="pt-2">

@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ApiService, getApiMode, registerBroadcastListener, postLocalBroadcast } from '../services/api';
 import { CARDS, calculateRoundEffects, RARITY_COLORS, convertGoogleDriveUrl } from '../services/cardData';
-import { 
-  Swords, Trophy, Users, RefreshCw, 
+import {
+  Swords, Trophy, Users, RefreshCw,
   Hourglass, AlertCircle, PlayCircle, Info
 } from 'lucide-react';
 
@@ -15,7 +15,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
   const [battleState, setBattleState] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   // 大廳狀態
   const [onlinePlayers, setOnlinePlayers] = useState([]);
   const [lobbyLoading, setLobbyLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
   const [isOpponentAccepted, setIsOpponentAccepted] = useState(false);
   const [alertMessage, setAlertMessage] = useState(null);
   const [sentInviteTimeLeft, setSentInviteTimeLeft] = useState(30);
-  
+
   // 戰績統計 (localStorage 存儲)
   const statsUpdatedRef = useRef(false);
   const [stats, setStats] = useState(() => {
@@ -174,8 +174,8 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
       if (getApiMode() === 'local') {
         if (data.type === 'INVITE_ACCEPTED' && String(data.sender_id || '').toLowerCase() === String(player.id || '').toLowerCase()) {
           // 安全檢查：只要當前邀請匹配，或者與最近一次發送的邀請 ID 匹配即可
-          const isMatch = (sentInvitation && sentInvitation.id === data.invitation_id) || 
-                          (lastSentInvitationIdRef.current === data.invitation_id);
+          const isMatch = (sentInvitation && sentInvitation.id === data.invitation_id) ||
+            (lastSentInvitationIdRef.current === data.invitation_id);
           if (!isMatch) {
             return;
           }
@@ -186,7 +186,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
             startBattle(data.battle_id);
           }, 1500);
         } else if (data.type === 'INVITE_REJECTED' && String(data.sender_id || '').toLowerCase() === String(player.id || '').toLowerCase()) {
-          setAlertMessage('對方婉拒了你的醫術切磋邀請。');
+          setAlertMessage('對方婉拒了你的切磋邀請。');
           setSentInvitation(null);
         }
       }
@@ -206,7 +206,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
         const remaining = Math.max(0, 180 - Math.floor(elapsed / 1000));
         setTimeLeft(remaining);
       };
-      
+
       updateTime(); // 立即計算一次
       timer = setInterval(updateTime, 1000);
     } else if (battleState && battleState.status === 'ended') {
@@ -244,7 +244,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
 
   // 2. 獲取在線玩家
   const fetchOnlinePlayers = async () => {
-    if (battleId) return; 
+    if (battleId) return;
     setLobbyLoading(true);
     try {
       const res = await ApiService.getOnlinePlayers(player.id);
@@ -317,7 +317,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
     }
     localStorage.removeItem('sa_active_battle_id');
     if (onClearBattleId) onClearBattleId();
-    
+
     setBattleId(null);
     setBattleState(null);
     setSelectedCardIds([]);
@@ -369,7 +369,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
           resetBattleSession();
           return;
         }
-        
+
         if (prevHpRef.current.p1 !== null && prevHpRef.current.p2 !== null) {
           if (nextState.p1_hp < prevHpRef.current.p1) {
             triggerShake('p1');
@@ -384,7 +384,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
         if (animatingRoundRef.current !== nextState.round_number) {
           const prevAnimRound = animatingRoundRef.current;
           animatingRoundRef.current = nextState.round_number;
-          
+
           if (prevAnimRound === null) {
             // 第一次載入，播當前回合特效
             setLocalRoundNumber(nextState.round_number);
@@ -476,7 +476,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
         setBattleState(res.battle);
       }
     } catch (err) {
-      setError(err.message || '出藥提交失敗');
+      setError(err.message || '技能提交失敗');
       setActionSubmitted(false);
     }
   };
@@ -505,13 +505,13 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
           const elapsed = Date.now() - Number(battleState.start_time);
           const remaining = Math.max(0, 15 - Math.floor(elapsed / 1000));
           setRoundTimeLeft(remaining);
-          
+
           if (remaining <= 0) {
             if (timer) clearInterval(timer);
             handleAutoSubmitEmpty();
           }
         };
-        
+
         updateTimer();
         timer = setInterval(updateTimer, 1000);
       } else {
@@ -561,7 +561,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
     setShowRoundBanner(false);
     statsUpdatedRef.current = false; // 重置統計狀態
     prevHpRef.current = { p1: null, p2: null };
-    
+
     fetchOnlinePlayers();
     pollingInterval.current = setInterval(() => {
       fetchOnlinePlayers();
@@ -593,27 +593,27 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
   // 前端計算單回合傷害與治療
   const getRoundCalculation = (role) => {
     if (!battleState || (!battleState.p1_last_action && !battleState.p2_last_action)) return null;
-    
+
     const isP1Role = role === 'p1';
     const p1CardIds = String(battleState.p1_last_action || '').split(',').filter(Boolean);
     const p2CardIds = String(battleState.p2_last_action || '').split(',').filter(Boolean);
-    
+
     const p1Cards = p1CardIds.map(cid => CARDS[cid]).filter(Boolean);
     const p2Cards = p2CardIds.map(cid => CARDS[cid]).filter(Boolean);
-    
+
     const p1Stats = { atk: battleState.p1_atk, def: battleState.p1_def };
     const p2Stats = { atk: battleState.p2_atk, def: battleState.p2_def };
-    
+
     const effects = calculateRoundEffects(p1Cards, p2Cards, p1Stats, p2Stats);
-    
+
     const p1RoundAtk = Math.max(0, battleState.p1_atk + effects.p1AtkMod);
     const p1RoundDef = Math.max(0, battleState.p1_def + effects.p1DefMod);
     const p2RoundAtk = Math.max(0, battleState.p2_atk + effects.p2AtkMod);
     const p2RoundDef = Math.max(0, battleState.p2_def + effects.p2DefMod);
-    
+
     const physDmgToP1 = Math.max(0, p2RoundAtk - p1RoundDef);
     const physDmgToP2 = Math.max(0, p1RoundAtk - p2RoundDef);
-    
+
     if (isP1Role) {
       return {
         physDmg: physDmgToP1,
@@ -651,11 +651,11 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
               <img src={activeCardDetail.image_url} alt={activeCardDetail.name} />
             </div>
           )}
-          
+
           <div className="tcm-card-detail-desc">
             {activeCardDetail.description}
           </div>
-          
+
           <div className="tcm-card-detail-grid">
             <div className="tcm-card-detail-item">
               <span className="tcm-card-detail-label">類型</span>
@@ -667,18 +667,17 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
             </div>
             {activeCardDetail.element && (
               <div className="tcm-card-detail-item">
-                <span className="tcm-card-detail-label">五行</span>
-                <span className={`tcm-card-detail-value ${
-                  activeCardDetail.element === '火' ? 'text-orange-400' :
+                <span className="tcm-card-detail-label">屬性</span>
+                <span className={`tcm-card-detail-value ${activeCardDetail.element === '火' ? 'text-orange-400' :
                   activeCardDetail.element === '水' ? 'text-blue-400' :
-                  activeCardDetail.element === '木' ? 'text-emerald-400' :
-                  activeCardDetail.element === '金' ? 'text-yellow-300' :
-                  activeCardDetail.element === '土' ? 'text-amber-500' : 'text-gray-400'
-                }`}>{activeCardDetail.element}</span>
+                    activeCardDetail.element === '木' ? 'text-emerald-400' :
+                      activeCardDetail.element === '金' ? 'text-yellow-300' :
+                        activeCardDetail.element === '土' ? 'text-amber-500' : 'text-gray-400'
+                  }`}>{activeCardDetail.element}</span>
               </div>
             )}
             <div className="tcm-card-detail-item">
-              <span className="tcm-card-detail-label">目標</span>
+              <span className="tcm-card-detail-label">作用對象</span>
               <span className="tcm-card-detail-value">{activeCardDetail.target === 'self' ? '自身' : activeCardDetail.target === 'opponent' ? '對手' : '調和'}</span>
             </div>
             {(activeCardDetail.atk_mod !== 0) && (
@@ -705,7 +704,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
               if (activeCardDetail.ops_any_atk) conds.push(`同道任一內功變動 ${activeCardDetail.ops_any_atk}`);
               if (activeCardDetail.ops_any_def) conds.push(`同道任一衛氣變動 ${activeCardDetail.ops_any_def}`);
               if (activeCardDetail.ops_any_ele) conds.push(`同道任一五行屬性 ${activeCardDetail.ops_any_ele}`);
-              
+
               if (conds.length === 0) return (
                 <div className="tcm-card-detail-item tcm-card-detail-conditions">
                   <span className="tcm-card-detail-label">觸發條件</span>
@@ -757,30 +756,27 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
     if (!battleState || battleState.status !== 'ended') return null;
     return createPortal(
       <div className="tcm-modal-overlay animate-fade-in">
-        <div className={`w-full max-w-sm glass-panel p-6 space-y-6 text-center border-2 transition duration-300 ${
-          isDraw ? 'border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
-          isWinner 
-            ? 'border-yellow-500 shadow-[0_0_25px_rgba(234,179,8,0.4)] bg-gradient-to-b from-yellow-955/20 to-zinc-900/95' 
+        <div className={`w-full max-w-sm glass-panel p-6 space-y-6 text-center border-2 transition duration-300 ${isDraw ? 'border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
+          isWinner
+            ? 'border-yellow-500 shadow-[0_0_25px_rgba(234,179,8,0.4)] bg-gradient-to-b from-yellow-955/20 to-zinc-900/95'
             : 'border-zinc-800 shadow-[0_0_15px_rgba(0,0,0,0.6)] bg-zinc-950/95'
-        }`}>
+          }`}>
           <div className="text-center space-y-3">
-            <div className={`inline-flex p-4 rounded-full mx-auto border transition duration-300 ${
-              isDraw ? 'bg-amber-955/40 border-amber-500/30 text-amber-500' :
-              isWinner 
-                ? 'bg-yellow-955/60 border-yellow-400 text-yellow-400 animate-bounce' 
+            <div className={`inline-flex p-4 rounded-full mx-auto border transition duration-300 ${isDraw ? 'bg-amber-955/40 border-amber-500/30 text-amber-500' :
+              isWinner
+                ? 'bg-yellow-955/60 border-yellow-400 text-yellow-400 animate-bounce'
                 : 'bg-zinc-900 border-zinc-700 text-zinc-500'
-            }`}>
+              }`}>
               <Trophy size={40} />
             </div>
-            
-            <h3 className={`text-xl font-black font-serif tracking-wider ${
-              isDraw ? 'text-amber-400' :
+
+            <h3 className={`text-xl font-black font-serif tracking-wider ${isDraw ? 'text-amber-400' :
               isWinner ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500' : 'text-gray-400'
-            }`}>
-              {isDraw ? '☯️ 雙方脈象調和，不分伯仲！' :
-               isWinner ? '🎉 醫理深厚，本局切磋勝出！' : '⚔️ 內功略遜一籌！下回再試。'}
+              }`}>
+              {isDraw ? '☯️ 雙方功力相當，不分軒輊！' :
+                isWinner ? '🎉 功力深厚，本局切磋勝出！' : '⚔️ 內功略遜一籌！下回再試。'}
             </h3>
-            
+
             <div className="p-3 bg-black/40 rounded-lg border border-amber-955/20 space-y-1 font-mono text-xs">
               <div className="flex justify-between text-gray-500">
                 <span>切磋結果：</span>
@@ -801,7 +797,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
             </div>
 
             <p className="text-[10px] text-gray-500 leading-relaxed font-serif">
-              醫學切磋結束，修煉報酬已注入你的靈獸經脈中！
+              切磋結束，修為獎勵已注入你的靈獸經脈中！
             </p>
           </div>
 
@@ -829,7 +825,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
           {/* 1. 標題區 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <h3 className="text-amber-500 font-mono font-bold flex items-center justify-center gap-1" style={{ fontSize: '11px', margin: 0, padding: 0 }}>
-              ☯️ 醫道配藥對決結算 ☯️
+              ☯️ 回合結算 ☯️
             </h3>
             <p className="text-gray-500 font-serif" style={{ fontSize: '8px', margin: 0, padding: 0 }}>
               回合 {Math.min(5, battleState.round_number - 1)} 功力交鋒展示
@@ -839,7 +835,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
           {/* 2. 對手出的卡牌 (中上部) */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
             <span className="text-rose-400 font-bold font-serif" style={{ fontSize: '9px' }}>
-              同道 ({oppObj ? oppObj.id : ''}) 投藥
+              同道 ({oppObj ? oppObj.id : ''}) 技能
             </span>
             <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
               {(() => {
@@ -851,19 +847,19 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
                   if (!card) return <span key={i} className="text-gray-600" style={{ fontSize: '9px' }}>無效</span>;
                   const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
                   return (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={`border rounded flex flex-col justify-between text-left transition duration-200 overflow-hidden relative shadow bg-zinc-900/95 ${cardRarity?.border || ''} ${cardRarity?.shadow || ''}`}
                       style={{ width: '56px', height: '66px', boxSizing: 'border-box', padding: '3px', aspectRatio: '0.85' }}
                     >
                       <div className="w-full text-center mb-0.5 leading-none">
                         <span className={`font-black font-serif truncate block ${cardRarity?.text || ''}`} style={{ fontSize: '6px' }}>{card.name}</span>
                       </div>
-                      
+
                       <div className="rounded border border-amber-955/10 overflow-hidden relative" style={{ width: '100%', height: '36px' }}>
-                        <img 
-                          src={convertGoogleDriveUrl(card.image_url) || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"} 
-                          alt={card.name} 
+                        <img
+                          src={convertGoogleDriveUrl(card.image_url) || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"}
+                          alt={card.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       </div>
@@ -887,8 +883,8 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
 
               return (
                 <div className="text-gray-300 leading-normal" style={{ fontSize: '9px' }}>
-                  <p style={{ margin: 0 }}>自己投藥：<span className="text-emerald-400 font-bold">{myCardNames}</span></p>
-                  <p style={{ margin: 0 }}>同道投藥：<span className="text-rose-400 font-bold">{oppCardNames}</span></p>
+                  <p style={{ margin: 0 }}>我方技能：<span className="text-emerald-400 font-bold">{myCardNames}</span></p>
+                  <p style={{ margin: 0 }}>同道技能：<span className="text-rose-400 font-bold">{oppCardNames}</span></p>
                 </div>
               );
             })()}
@@ -897,7 +893,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
           {/* 4. 自己出的卡牌 (中下部) */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
             <span className="text-emerald-400 font-bold font-serif" style={{ fontSize: '9px' }}>
-              自己 投藥
+              我方 技能
             </span>
             <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
               {(() => {
@@ -909,19 +905,19 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
                   if (!card) return <span key={i} className="text-gray-600" style={{ fontSize: '9px' }}>無效</span>;
                   const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
                   return (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={`border rounded flex flex-col justify-between text-left transition duration-200 overflow-hidden relative shadow bg-zinc-900/95 ${cardRarity?.border || ''} ${cardRarity?.shadow || ''}`}
                       style={{ width: '56px', height: '66px', boxSizing: 'border-box', padding: '3px', aspectRatio: '0.85' }}
                     >
                       <div className="w-full text-center mb-0.5 leading-none">
                         <span className={`font-black font-serif truncate block ${cardRarity?.text || ''}`} style={{ fontSize: '6px' }}>{card.name}</span>
                       </div>
-                      
+
                       <div className="rounded border border-amber-955/10 overflow-hidden relative" style={{ width: '100%', height: '36px' }}>
-                        <img 
-                          src={convertGoogleDriveUrl(card.image_url) || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"} 
-                          alt={card.name} 
+                        <img
+                          src={convertGoogleDriveUrl(card.image_url) || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"}
+                          alt={card.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       </div>
@@ -945,484 +941,481 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
   try {
     return (
       <div className="w-full max-w-full space-y-4" style={{ boxSizing: 'border-box', overflowX: 'hidden' }}>
-      
-      {error && (
-        <div className="p-3 bg-rose-955/40 border border-rose-500/20 text-rose-300 text-xs rounded-lg flex items-center gap-2 animate-shake">
-          <AlertCircle size={14} className="shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
 
-      {/* ======================= 大廳模式 (Lobby) ======================= */}
-      {!battleId && (
-        <div className="tcm-battle-lobby-container">
-          
-          {/* 1. 在線對手列表 */}
-          <div className="glass-panel p-5 border-gray-800 space-y-3 border">
-            <div className="flex justify-center items-center border-b border-amber-900/30 pb-3 gap-2">
-              <h3 className="text-sm font-bold text-gray-300 flex items-center justify-center gap-1.5 font-serif">
-                <Users size={16} className="text-amber-500" />
-                醫道切磋堂 (在線同道)
-              </h3>
-
-              <button
-                onClick={fetchOnlinePlayers}
-                className="tcm-battle-refresh-btn"
-                title="更新上線情況"
-              >
-                <RefreshCw size={12} className={lobbyLoading ? 'animate-spin' : ''} />
-              </button>
-            </div>
-
-            <div className="tcm-battle-opponents-list">
-              {onlinePlayers.length === 0 ? (
-                <div className="py-20 text-center text-gray-500 text-xs font-serif leading-relaxed">
-                  目前切磋堂內無其他在線同道。
-                  <br />
-                  請更新同道上線情況以發起挑戰。
-                </div>
-              ) : (
-                onlinePlayers.map(p => {
-                  const isInvitingThis = sentInvitation && sentInvitation.receiver_id === p.id;
-                  return (
-                    <div 
-                      key={p.id}
-                      className="tcm-battle-opponent-row"
-                    >
-                      <div className="tcm-battle-opponent-name">
-                        {p.name}
-                      </div>
-                      
-                      <div className="tcm-battle-opponent-level">
-                        LV {p.level}
-                      </div>
-
-                      <div className="tcm-battle-opponent-action">
-                        {isInvitingThis ? (
-                          <button
-                            onClick={handleCancelInvite}
-                            className="tcm-action-btn unequip-action tcm-battle-btn-compact"
-                          >
-                            召回 ({sentInviteTimeLeft}s)
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleInvitePlayer(p)}
-                            disabled={sentInvitation !== null}
-                            className="btn-neon tcm-battle-btn-compact"
-                          >
-                            <Swords size={11} />
-                            發起挑戰
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+        {error && (
+          <div className="p-3 bg-rose-955/40 border border-rose-500/20 text-rose-300 text-xs rounded-lg flex items-center gap-2 animate-shake">
+            <AlertCircle size={14} className="shrink-0" />
+            <span>{error}</span>
           </div>
+        )}
 
-          {/* 2. 戰績區塊 */}
-          <div className="glass-panel p-5 border-gray-800 space-y-3 border" style={{ marginTop: '20px' }}>
-            <h3 className="text-sm font-bold text-gray-300 flex items-center justify-center gap-1.5 border-b border-amber-900/30 pb-3 font-serif">
-              <Trophy size={16} className="text-amber-500" />
-              修煉切磋戰績
-            </h3>
-            
-            {/* 圓圈圈 + 數字排版 */}
-            <div className="tcm-battle-stat-circles-container">
-              <div className="tcm-battle-stat-circle total">
-                <span className="stat-value">{stats.total}</span>
-                <span className="stat-label">切磋場數</span>
-              </div>
-              <div className="tcm-battle-stat-circle wins">
-                <span className="stat-value">{stats.wins}</span>
-                <span className="stat-label">醫道勝出</span>
-              </div>
-              <div className="tcm-battle-stat-circle losses">
-                <span className="stat-value">{stats.losses}</span>
-                <span className="stat-label">內功略遜</span>
-              </div>
-            </div>
+        {/* ======================= 大廳模式 (Lobby) ======================= */}
+        {!battleId && (
+          <div className="tcm-battle-lobby-container">
 
-            {/* 進度百分條 */}
-            {(() => {
-              const winRate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
-              return (
-                <div className="tcm-battle-winrate-container">
-                  <div className="winrate-header">
-                    <span>當前切磋勝率</span>
-                    <span className="winrate-val">{winRate}%</span>
-                  </div>
-                  <div className="winrate-track">
-                    <div className="winrate-fill" style={{ width: `${winRate}%` }}></div>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
+            {/* 1. 在線對手列表 */}
+            <div className="glass-panel p-5 border-gray-800 space-y-3 border">
+              <div className="flex justify-center items-center border-b border-amber-900/30 pb-3 gap-2">
+                <h3 className="text-sm font-bold text-gray-300 flex items-center justify-center gap-1.5 font-serif">
+                  <Users size={16} className="text-amber-500" />
+                  在線同道
+                </h3>
 
-        </div>
-      )}
-
-      {/* ======================= 載入對戰中 (Loading Battle) ================== */}
-      {battleId && !battleState && (
-        <div className="flex flex-col items-center justify-center py-32 space-y-4">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center text-amber-500">
-              <RefreshCw size={16} className="animate-pulse" />
-            </div>
-          </div>
-          <div className="text-center space-y-1">
-            <p className="text-sm font-bold text-gray-300 font-serif">藥斗建立中，載入鬥法藥室...</p>
-            <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Apothecary Room Syncing</p>
-          </div>
-        </div>
-      )}
-
-      {/* ======================= 戰鬥模式 (In Battle) ================== */}
-      {battleId && battleState && (() => {
-        const activeDeck = (player.deck || []).filter(Boolean);
-        
-        const renderCard = (index) => {
-          const cardId = activeDeck[index];
-
-          // 空白槽：直接挪用技能卡槽的空槽樣式，保留一致的0.85比例與外觀
-          if (!cardId) {
-            return (
-              <div 
-                key={`empty-${index}`} 
-                className="tcm-skill-slot empty-slot cursor-default"
-                style={{ aspectRatio: '0.85' }}
-              >
-                <span className="tcm-skill-slot-index z-10">{index + 1}</span>
-              </div>
-            );
-          }
-
-          const card = CARDS[cardId];
-          if (!card) return null;
-
-          const isUsed = usedCardIds.includes(cardId) || 
-            (usedCardIds.filter(id => id === cardId).length > (player.deck.filter(id => id === cardId).length - 1));
-          
-          const isSelected = selectedCardIds.includes(cardId);
-          const rarityStyle = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
-
-          return (
-            <button
-              key={`${cardId}-${index}`}
-              disabled={actionSubmitted || !isMyTurn || isUsed}
-              onClick={() => handleSelectCard(cardId)}
-              className={`tcm-skill-slot ${isSelected ? 'active' : ''} ${rarityStyle.border} transition duration-200 overflow-hidden relative shadow bg-zinc-900/90 active:scale-95 disabled:active:scale-100`}
-              style={{ 
-                aspectRatio: '0.85',
-                pointerEvents: isUsed ? 'none' : 'auto',
-                filter: isUsed ? 'grayscale(1)' : 'none',
-                opacity: isUsed ? 0.45 : 1
-              }}
-            >
-              {/* 圖片鋪滿與 Fallback 大字 */}
-              {card.image_url ? (
-                <img 
-                  src={convertGoogleDriveUrl(card.image_url)} 
-                  alt={card.name} 
-                  className="absolute inset-0 w-full h-full object-cover rounded"
-                />
-              ) : (
-                <span className={`tcm-skill-slot-name ${rarityStyle.text}`}>
-                  {card.name}
-                </span>
-              )}
-
-              <span className="tcm-skill-slot-index z-10">{index + 1}</span>
-
-              {/* 右上角 Information 標示 - 明顯發光金邊版 */}
-              <span
-                role="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveCardDetail(card);
-                }}
-                className="absolute top-1 right-1 z-20 p-0.5 rounded-full bg-black/95 text-amber-400 hover:text-amber-200 hover:bg-black transition cursor-pointer flex items-center justify-center border border-amber-500/40 shadow-[0_0_4px_rgba(245,158,11,0.6)]"
-                title="查看效果"
-              >
-                <Info size={9} />
-              </span>
-            </button>
-          );
-        };
-
-        return (
-          <div className="w-full flex flex-col mx-auto" style={{ boxSizing: 'border-box', padding: '0', gap: '4px', maxWidth: '100%' }}>
-            
-            {/* 0. 房號 */}
-            <div className="flex flex-row justify-between items-center w-full px-2 py-0.5 text-[9px] border-b border-amber-955/20 text-gray-500 font-mono">
-              <span>房號: {battleState.battle_id.replace('BAT_', '')}</span>
-            </div>
-
-            {/* 1. 對手區 - 包裹 tcm-battle-section */}
-            <div className="tcm-battle-section w-full">
-              <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 2px 0' }}>
-                【 同道切磋狀態 】
-              </div>
-              <div 
-                className={`w-full relative space-y-0.5 transition duration-150 ${
-                  shakingPlayer === oppObj.role ? 'animate-shake bg-red-950/15' : ''
-                }`}
-                style={{ boxSizing: 'border-box' }}
-              >
-                <div className="flex justify-between items-center text-[9px] text-red-400 font-bold font-serif leading-none pt-0.5">
-                  <span>同道衛氣 (敵)</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-400 truncate max-w-[80px]" title={oppObj.id}>{oppObj.id}</span>
-                    <span className={`w-1.5 h-1.5 rounded-full ${
-                      oppObj.action !== 'waiting' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
-                    }`} title={oppObj.action !== 'waiting' ? '已配置藥效' : '配置中'} />
-                  </div>
-                </div>
-                
-                <div className="flex justify-between items-center text-[9px] font-mono font-bold text-red-400 leading-none pt-0.5">
-                  <span>營血</span>
-                  <span>{oppObj.hp}/{oppObj.maxHp}</span>
-                </div>
-
-                {/* 營血條 */}
-                <div className="hp-bar-container" style={{ height: '6px', background: 'rgba(0,0,0,0.5)', borderRadius: '3px' }}>
-                  <div 
-                    className="hp-bar-fill bg-gradient-to-r from-red-600 to-amber-700 animate-pulse"
-                    style={{ width: `${Math.max(0, (oppObj.hp / oppObj.maxHp) * 100)}%`, borderRadius: '3px' }}
-                  ></div>
-                </div>
-
-                {/* 屬性單行顯示 */}
-                <div className="flex justify-between text-[9px] font-mono leading-none pt-1 text-gray-400">
-                  <span>內功: <span className="text-amber-400 font-bold">{oppObj.atk}</span></span>
-                  <span>衛氣: <span className="text-amber-400 font-bold">{oppObj.def}</span></span>
-                </div>
-
-                {(() => {
-                  const calc = getRoundCalculation(oppObj.role);
-                  if (!calc) return null;
-                  const netChange = calc.heal - (calc.physDmg + calc.skillDmg);
-                  return (
-                    <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/10 pt-1 leading-none">
-                      <span>損: <span className="text-rose-400">-{calc.physDmg + calc.skillDmg}</span></span>
-                      <span>療: <span className="text-emerald-400 font-bold">+{calc.heal}</span></span>
-                      <span className={netChange >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
-                        ({netChange >= 0 ? '+' : ''}{netChange})
-                      </span>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* 2. 計時區 - 包裹 tcm-battle-section */}
-            <div className="tcm-battle-section w-full">
-              <div className="flex flex-row justify-between items-center w-full text-[9px] text-gray-400 font-serif leading-none" style={{ boxSizing: 'border-box' }}>
-                <span>出牌輪數: {showReveal ? Math.min(5, battleState.round_number - 1) : Math.min(5, battleState.round_number)} / 5</span>
-                <div className="flex items-center gap-1 font-mono text-[9px] text-amber-400">
-                  <Hourglass size={10} className={((isMyTurn && roundTimeLeft <= 5) || showReveal) ? "animate-bounce text-rose-500" : "animate-spin text-amber-500"} />
-                  <span>
-                    {showReveal ? "回合展示中" : 
-                     !isMyTurn ? "等待同道配置..." : 
-                     `剩餘:${roundTimeLeft}秒`}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. 個人區 - 包裹 tcm-battle-section */}
-            <div className="tcm-battle-section w-full">
-              <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 2px 0' }}>
-                【 吾身切磋狀態 】
-              </div>
-              <div 
-                className={`w-full relative space-y-0.5 transition duration-150 ${
-                  shakingPlayer === meObj.role ? 'animate-shake bg-red-950/15' : ''
-                }`}
-                style={{ boxSizing: 'border-box' }}
-              >
-                <div className="flex justify-between items-center text-[9px] text-amber-500 font-bold font-serif leading-none pt-0.5">
-                  <span>吾身衛氣 (我)</span>
-                  <span className="text-gray-400 truncate max-w-[80px]" title={meObj.id}>{meObj.id}</span>
-                </div>
-                
-                <div className="flex justify-between items-center text-[9px] font-mono font-bold text-amber-400 leading-none pt-0.5">
-                  <span>營血</span>
-                  <span>{meObj.hp}/{meObj.maxHp}</span>
-                </div>
-
-                {/* 營血條 */}
-                <div className="hp-bar-container" style={{ height: '6px', background: 'rgba(0,0,0,0.5)', borderRadius: '3px' }}>
-                  <div 
-                    className="hp-bar-fill animate-pulse"
-                    style={{ width: `${Math.max(0, (meObj.hp / meObj.maxHp) * 100)}%`, borderRadius: '3px' }}
-                  ></div>
-                </div>
-
-                {/* 屬性單行顯示 - 純文字排版，不加背景容器 */}
-                <div className="flex justify-between text-[9px] font-mono leading-none pt-0.5 text-gray-400">
-                  <span>內功: <span className="text-amber-400 font-bold">{meObj.atk}</span></span>
-                  <span>衛氣: <span className="text-amber-400 font-bold">{meObj.def}</span></span>
-                </div>
-
-                {(() => {
-                  const calc = getRoundCalculation(meObj.role);
-                  if (!calc) return null;
-                  const netChange = calc.heal - (calc.physDmg + calc.skillDmg);
-                  return (
-                    <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/10 pt-1 leading-none">
-                      <span>損: <span className="text-rose-400">-{calc.physDmg + calc.skillDmg}</span></span>
-                      <span>療: <span className="text-emerald-400">+{calc.heal}</span></span>
-                      <span className={netChange >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
-                        ({netChange >= 0 ? '+' : ''}{netChange})
-                      </span>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-
-            {/* 4. 出牌區 - 包裹 tcm-battle-section */}
-            {battleState && battleState.status === 'active' && (
-              <div 
-                className="tcm-battle-section w-full transition-opacity duration-300"
-                style={{ opacity: showReveal ? 0.25 : 1, pointerEvents: showReveal ? 'none' : 'auto', boxSizing: 'border-box' }}
-              >
-                <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 3px 0' }}>
-                  【 方劑配藥出牌區 】
-                </div>
-
-                <div className="w-full overflow-hidden" style={{ boxSizing: 'border-box' }}>
-                  <div className="tcm-battle-cards-ring-grid">
-                    {/* Row 1 */}
-                    {renderCard(0)}
-                    {renderCard(1)}
-                    {renderCard(2)}
-                    {renderCard(3)}
-
-                    {/* Row 2 */}
-                    {renderCard(4)}
-                    <div className="tcm-battle-submit-btn-wrapper">
-                      <button
-                        id="btn-battle-submit"
-                        disabled={selectedCardIds.length === 0 || actionSubmitted || !isMyTurn}
-                        onClick={handleSubmitAction}
-                        className="btn-neon w-full transition transform active:scale-95 disabled:opacity-50 flex items-center justify-center text-center font-serif leading-none tcm-grid-button"
-                        style={{ height: '36px', minHeight: '36px', fontSize: '9px', padding: '2px 4px' }}
-                      >
-                        {!isMyTurn ? '等候出牌' :
-                         actionSubmitted ? '已配置藥效' : 
-                         `確認出牌 (${selectedCardIds.length}/2)`}
-                      </button>
-                    </div>
-                    {renderCard(5)}
-
-                    {/* Row 3 */}
-                    {renderCard(6)}
-                    {renderCard(7)}
-                    {renderCard(8)}
-                    {renderCard(9)}
-                  </div>
-                </div>
-              </div>
-            )}
-
-
-
-          {/* 回合特效 banner */}
-          {showRoundBanner && createPortal(
-            <div className="tcm-round-banner-overlay">
-              <div className="tcm-round-banner-text">
-                Round {roundBannerNum}
-              </div>
-            </div>,
-            document.body
-          )}
-
-          {renderCardDetailPortal()}
-          {renderBattleEndedPortal()}
-          {renderRoundRevealPortal()}
-
-        </div>
-      );
-    })()}
-
-      {/* ==================== 網頁內提醒對話框 ==================== */}
-      {alertMessage && (
-        <div className="tcm-floating-invite-overlay">
-          <div className="tcm-floating-invite-card glass-panel glass-panel-neon p-6 space-y-4 text-center animate-shake">
-            <div className="text-center space-y-2">
-              <div className="inline-flex p-3 rounded-full bg-rose-955/40 text-rose-400 border border-rose-500/20 animate-pulse mx-auto">
-                <AlertCircle size={24} className="shrink-0" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-200 font-serif">醫館提示</h3>
-              <p className="text-sm text-gray-400 leading-relaxed font-serif text-center">{alertMessage}</p>
-            </div>
-            <div className="pt-2">
-              <button
-                id="btn-battle-alert-close"
-                onClick={() => setAlertMessage(null)}
-                className="btn-neon px-6 py-2 text-xs font-bold"
-              >
-                知曉
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* ==================== 彈窗：發出邀請狀態 (改為置中浮動視窗 + 模糊背景) ==================== */}
-      {sentInvitation && !battleId && (
-        <div className="tcm-floating-invite-overlay">
-          <div className="tcm-floating-invite-card glass-panel glass-panel-neon p-6 space-y-4 text-center">
-            <div className="text-center space-y-2">
-              <div className="inline-flex p-3 rounded-full bg-amber-955/40 text-amber-500 border border-amber-500/20 animate-pulse mx-auto">
-                <PlayCircle size={24} className="animate-spin text-amber-500" style={{ animationDuration: '3s' }} />
-              </div>
-              <h3 className="text-lg font-bold text-gray-200 font-serif">發出切磋邀請</h3>
-              <p className="text-sm text-gray-400 leading-relaxed font-serif text-center">
-                正在向同道 <span className="text-amber-400 font-bold">[ {sentInvitation.receiver_name} ]</span> 發起醫道切磋...
-                <br />
-                <span className="text-xs text-rose-400 font-bold mt-1 block">(等待回應剩餘時間：{sentInviteTimeLeft} 秒)</span>
-              </p>
-            </div>
-            
-            {isOpponentAccepted ? (
-              <div className="text-xs text-emerald-400 font-bold font-serif animate-pulse pt-2">
-                對方已接受，正在進入對戰場地...
-              </div>
-            ) : (
-              <div className="pt-2">
                 <button
-                  id="btn-cancel-invite"
-                  onClick={handleCancelInvite}
-                  className="btn-neon-decline px-6 py-2 text-xs font-bold"
+                  onClick={fetchOnlinePlayers}
+                  className="tcm-battle-refresh-btn"
+                  title="更新上線情況"
                 >
-                  召回邀請
+                  <RefreshCw size={12} className={lobbyLoading ? 'animate-spin' : ''} />
                 </button>
               </div>
-            )}
+
+              <div className="tcm-battle-opponents-list">
+                {onlinePlayers.length === 0 ? (
+                  <div className="py-20 text-center text-gray-500 text-xs font-serif leading-relaxed">
+                    目前大廳內無其他在線同道
+                    <br />
+                    請更新上線情況以發起挑戰
+                  </div>
+                ) : (
+                  onlinePlayers.map(p => {
+                    const isInvitingThis = sentInvitation && sentInvitation.receiver_id === p.id;
+                    return (
+                      <div
+                        key={p.id}
+                        className="tcm-battle-opponent-row"
+                      >
+                        <div className="tcm-battle-opponent-name">
+                          {p.name}
+                        </div>
+
+                        <div className="tcm-battle-opponent-level">
+                          LV {p.level}
+                        </div>
+
+                        <div className="tcm-battle-opponent-action">
+                          {isInvitingThis ? (
+                            <button
+                              onClick={handleCancelInvite}
+                              className="tcm-action-btn unequip-action tcm-battle-btn-compact"
+                            >
+                              召回 ({sentInviteTimeLeft}s)
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleInvitePlayer(p)}
+                              disabled={sentInvitation !== null}
+                              className="btn-neon tcm-battle-btn-compact"
+                            >
+                              <Swords size={11} />
+                              發起挑戰
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* 2. 戰績區塊 */}
+            <div className="glass-panel p-5 border-gray-800 space-y-3 border" style={{ marginTop: '20px' }}>
+              <h3 className="text-sm font-bold text-gray-300 flex items-center justify-center gap-1.5 border-b border-amber-900/30 pb-3 font-serif">
+                <Trophy size={16} className="text-amber-500" />
+                修煉切磋戰績
+              </h3>
+
+              {/* 圓圈圈 + 數字排版 */}
+              <div className="tcm-battle-stat-circles-container">
+                <div className="tcm-battle-stat-circle total">
+                  <span className="stat-value">{stats.total}</span>
+                  <span className="stat-label">切磋場數</span>
+                </div>
+                <div className="tcm-battle-stat-circle wins">
+                  <span className="stat-value">{stats.wins}</span>
+                  <span className="stat-label">功力勝出</span>
+                </div>
+                <div className="tcm-battle-stat-circle losses">
+                  <span className="stat-value">{stats.losses}</span>
+                  <span className="stat-label">內功略遜</span>
+                </div>
+              </div>
+
+              {/* 進度百分條 */}
+              {(() => {
+                const winRate = stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
+                return (
+                  <div className="tcm-battle-winrate-container">
+                    <div className="winrate-header">
+                      <span>當前切磋勝率</span>
+                      <span className="winrate-val">{winRate}%</span>
+                    </div>
+                    <div className="winrate-track">
+                      <div className="winrate-fill" style={{ width: `${winRate}%` }}></div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ======================= 載入對戰中 (Loading Battle) ================== */}
+        {battleId && !battleState && (
+          <div className="flex flex-col items-center justify-center py-32 space-y-4">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full border-4 border-amber-500/20 border-t-amber-500 animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center text-amber-500">
+                <RefreshCw size={16} className="animate-pulse" />
+              </div>
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-sm font-bold text-gray-300 font-serif">切磋場地準備中，請稍後...</p>
+              <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Battlefield Preparing...</p>
+            </div>
+          </div>
+        )}
+
+        {/* ======================= 戰鬥模式 (In Battle) ================== */}
+        {battleId && battleState && (() => {
+          const activeDeck = (player.deck || []).filter(Boolean);
+
+          const renderCard = (index) => {
+            const cardId = activeDeck[index];
+
+            // 空白槽：直接挪用技能卡槽的空槽樣式，保留一致的0.85比例與外觀
+            if (!cardId) {
+              return (
+                <div
+                  key={`empty-${index}`}
+                  className="tcm-skill-slot empty-slot cursor-default"
+                  style={{ aspectRatio: '0.85' }}
+                >
+                  <span className="tcm-skill-slot-index z-10">{index + 1}</span>
+                </div>
+              );
+            }
+
+            const card = CARDS[cardId];
+            if (!card) return null;
+
+            const isUsed = usedCardIds.includes(cardId) ||
+              (usedCardIds.filter(id => id === cardId).length > (player.deck.filter(id => id === cardId).length - 1));
+
+            const isSelected = selectedCardIds.includes(cardId);
+            const rarityStyle = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
+
+            return (
+              <button
+                key={`${cardId}-${index}`}
+                disabled={actionSubmitted || !isMyTurn || isUsed}
+                onClick={() => handleSelectCard(cardId)}
+                className={`tcm-skill-slot ${isSelected ? 'active' : ''} ${rarityStyle.border} transition duration-200 overflow-hidden relative shadow bg-zinc-900/90 active:scale-95 disabled:active:scale-100`}
+                style={{
+                  aspectRatio: '0.85',
+                  pointerEvents: isUsed ? 'none' : 'auto',
+                  filter: isUsed ? 'grayscale(1)' : 'none',
+                  opacity: isUsed ? 0.45 : 1
+                }}
+              >
+                {/* 圖片鋪滿與 Fallback 大字 */}
+                {card.image_url ? (
+                  <img
+                    src={convertGoogleDriveUrl(card.image_url)}
+                    alt={card.name}
+                    className="absolute inset-0 w-full h-full object-cover rounded"
+                  />
+                ) : (
+                  <span className={`tcm-skill-slot-name ${rarityStyle.text}`}>
+                    {card.name}
+                  </span>
+                )}
+
+                <span className="tcm-skill-slot-index z-10">{index + 1}</span>
+
+                {/* 右上角 Information 標示 - 明顯發光金邊版 */}
+                <span
+                  role="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveCardDetail(card);
+                  }}
+                  className="absolute top-1 right-1 z-20 p-0.5 rounded-full bg-black/95 text-amber-400 hover:text-amber-200 hover:bg-black transition cursor-pointer flex items-center justify-center border border-amber-500/40 shadow-[0_0_4px_rgba(245,158,11,0.6)]"
+                  title="查看效果"
+                >
+                  <Info size={9} />
+                </span>
+              </button>
+            );
+          };
+
+          return (
+            <div className="w-full flex flex-col mx-auto" style={{ boxSizing: 'border-box', padding: '0', gap: '4px', maxWidth: '100%' }}>
+
+              {/* 0. 房號 */}
+              <div className="flex flex-row justify-between items-center w-full px-2 py-0.5 text-[9px] border-b border-amber-955/20 text-gray-500 font-mono">
+                <span>切磋房號: {battleState.battle_id.replace('BAT_', '')}</span>
+              </div>
+
+              {/* 1. 對手區 - 包裹 tcm-battle-section */}
+              <div className="tcm-battle-section w-full">
+                <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 2px 0' }}>
+                  【 同道切磋狀態 】
+                </div>
+                <div
+                  className={`w-full relative space-y-0.5 transition duration-150 ${shakingPlayer === oppObj.role ? 'animate-shake bg-red-950/15' : ''
+                    }`}
+                  style={{ boxSizing: 'border-box' }}
+                >
+                  <div className="flex justify-between items-center text-[9px] text-red-400 font-bold font-serif leading-none pt-0.5">
+                    <span>同道衛氣</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-400 truncate max-w-[80px]" title={oppObj.id}>{oppObj.id}</span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${oppObj.action !== 'waiting' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+                        }`} title={oppObj.action !== 'waiting' ? '已選擇技能' : '選擇中'} />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[9px] font-mono font-bold text-red-400 leading-none pt-0.5">
+                    <span>營血</span>
+                    <span>{oppObj.hp}/{oppObj.maxHp}</span>
+                  </div>
+
+                  {/* 營血條 */}
+                  <div className="hp-bar-container" style={{ height: '6px', background: 'rgba(0,0,0,0.5)', borderRadius: '3px' }}>
+                    <div
+                      className="hp-bar-fill bg-gradient-to-r from-red-600 to-amber-700 animate-pulse"
+                      style={{ width: `${Math.max(0, (oppObj.hp / oppObj.maxHp) * 100)}%`, borderRadius: '3px' }}
+                    ></div>
+                  </div>
+
+                  {/* 屬性單行顯示 */}
+                  <div className="flex justify-between text-[9px] font-mono leading-none pt-1 text-gray-400">
+                    <span>內功: <span className="text-amber-400 font-bold">{oppObj.atk}</span></span>
+                    <span>衛氣: <span className="text-amber-400 font-bold">{oppObj.def}</span></span>
+                  </div>
+
+                  {(() => {
+                    const calc = getRoundCalculation(oppObj.role);
+                    if (!calc) return null;
+                    const netChange = calc.heal - (calc.physDmg + calc.skillDmg);
+                    return (
+                      <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/10 pt-1 leading-none">
+                        <span>損: <span className="text-rose-400">-{calc.physDmg + calc.skillDmg}</span></span>
+                        <span>療: <span className="text-emerald-400 font-bold">+{calc.heal}</span></span>
+                        <span className={netChange >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+                          ({netChange >= 0 ? '+' : ''}{netChange})
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* 2. 計時區 - 包裹 tcm-battle-section */}
+              <div className="tcm-battle-section w-full">
+                <div className="flex flex-row justify-between items-center w-full text-[9px] text-gray-400 font-serif leading-none" style={{ boxSizing: 'border-box' }}>
+                  <span>出牌輪數: {showReveal ? Math.min(5, battleState.round_number - 1) : Math.min(5, battleState.round_number)} / 5</span>
+                  <div className="flex items-center gap-1 font-mono text-[9px] text-amber-400">
+                    <Hourglass size={10} className={((isMyTurn && roundTimeLeft <= 5) || showReveal) ? "animate-bounce text-rose-500" : "animate-spin text-amber-500"} />
+                    <span>
+                      {showReveal ? "回合展示中" :
+                        !isMyTurn ? "等待同道選擇..." :
+                          `剩餘:${roundTimeLeft}秒`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. 個人區 - 包裹 tcm-battle-section */}
+              <div className="tcm-battle-section w-full">
+                <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 2px 0' }}>
+                  【 吾身切磋狀態 】
+                </div>
+                <div
+                  className={`w-full relative space-y-0.5 transition duration-150 ${shakingPlayer === meObj.role ? 'animate-shake bg-red-950/15' : ''
+                    }`}
+                  style={{ boxSizing: 'border-box' }}
+                >
+                  <div className="flex justify-between items-center text-[9px] text-amber-500 font-bold font-serif leading-none pt-0.5">
+                    <span>吾身衛氣</span>
+                    <span className="text-gray-400 truncate max-w-[80px]" title={meObj.id}>{meObj.id}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[9px] font-mono font-bold text-amber-400 leading-none pt-0.5">
+                    <span>營血</span>
+                    <span>{meObj.hp}/{meObj.maxHp}</span>
+                  </div>
+
+                  {/* 營血條 */}
+                  <div className="hp-bar-container" style={{ height: '6px', background: 'rgba(0,0,0,0.5)', borderRadius: '3px' }}>
+                    <div
+                      className="hp-bar-fill animate-pulse"
+                      style={{ width: `${Math.max(0, (meObj.hp / meObj.maxHp) * 100)}%`, borderRadius: '3px' }}
+                    ></div>
+                  </div>
+
+                  {/* 屬性單行顯示 - 純文字排版，不加背景容器 */}
+                  <div className="flex justify-between text-[9px] font-mono leading-none pt-0.5 text-gray-400">
+                    <span>內功: <span className="text-amber-400 font-bold">{meObj.atk}</span></span>
+                    <span>衛氣: <span className="text-amber-400 font-bold">{meObj.def}</span></span>
+                  </div>
+
+                  {(() => {
+                    const calc = getRoundCalculation(meObj.role);
+                    if (!calc) return null;
+                    const netChange = calc.heal - (calc.physDmg + calc.skillDmg);
+                    return (
+                      <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/10 pt-1 leading-none">
+                        <span>損: <span className="text-rose-400">-{calc.physDmg + calc.skillDmg}</span></span>
+                        <span>療: <span className="text-emerald-400">+{calc.heal}</span></span>
+                        <span className={netChange >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+                          ({netChange >= 0 ? '+' : ''}{netChange})
+                        </span>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* 4. 出牌區 - 包裹 tcm-battle-section */}
+              {battleState && battleState.status === 'active' && (
+                <div
+                  className="tcm-battle-section w-full transition-opacity duration-300"
+                  style={{ opacity: showReveal ? 0.25 : 1, pointerEvents: showReveal ? 'none' : 'auto', boxSizing: 'border-box' }}
+                >
+                  <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 3px 0' }}>
+                    【 技能出牌區 】
+                  </div>
+
+                  <div className="w-full overflow-hidden" style={{ boxSizing: 'border-box' }}>
+                    <div className="tcm-battle-cards-ring-grid">
+                      {/* Row 1 */}
+                      {renderCard(0)}
+                      {renderCard(1)}
+                      {renderCard(2)}
+                      {renderCard(3)}
+
+                      {/* Row 2 */}
+                      {renderCard(4)}
+                      <div className="tcm-battle-submit-btn-wrapper">
+                        <button
+                          id="btn-battle-submit"
+                          disabled={selectedCardIds.length === 0 || actionSubmitted || !isMyTurn}
+                          onClick={handleSubmitAction}
+                          className="btn-neon w-full transition transform active:scale-95 disabled:opacity-50 flex items-center justify-center text-center font-serif leading-none tcm-grid-button"
+                          style={{ height: '36px', minHeight: '36px', fontSize: '9px', padding: '2px 4px' }}
+                        >
+                          {!isMyTurn ? '等候出牌' :
+                            actionSubmitted ? '已選擇技能' :
+                              `確認出牌 (${selectedCardIds.length}/2)`}
+                        </button>
+                      </div>
+                      {renderCard(5)}
+
+                      {/* Row 3 */}
+                      {renderCard(6)}
+                      {renderCard(7)}
+                      {renderCard(8)}
+                      {renderCard(9)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+
+              {/* 回合特效 banner */}
+              {showRoundBanner && createPortal(
+                <div className="tcm-round-banner-overlay">
+                  <div className="tcm-round-banner-text">
+                    Round {roundBannerNum}
+                  </div>
+                </div>,
+                document.body
+              )}
+
+              {renderCardDetailPortal()}
+              {renderBattleEndedPortal()}
+              {renderRoundRevealPortal()}
+
+            </div>
+          );
+        })()}
+
+        {/* ==================== 網頁內提醒對話框 ==================== */}
+        {alertMessage && (
+          <div className="tcm-floating-invite-overlay">
+            <div className="tcm-floating-invite-card glass-panel glass-panel-neon p-6 space-y-4 text-center animate-shake">
+              <div className="text-center space-y-2">
+                <div className="inline-flex p-3 rounded-full bg-rose-955/40 text-rose-400 border border-rose-500/20 animate-pulse mx-auto">
+                  <AlertCircle size={24} className="shrink-0" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-200 font-serif">培育空間提示</h3>
+                <p className="text-sm text-gray-400 leading-relaxed font-serif text-center">{alertMessage}</p>
+              </div>
+              <div className="pt-2">
+                <button
+                  id="btn-battle-alert-close"
+                  onClick={() => setAlertMessage(null)}
+                  className="btn-neon px-6 py-2 text-xs font-bold"
+                >
+                  知曉
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* ==================== 彈窗：發出邀請狀態 (改為置中浮動視窗 + 模糊背景) ==================== */}
+        {sentInvitation && !battleId && (
+          <div className="tcm-floating-invite-overlay">
+            <div className="tcm-floating-invite-card glass-panel glass-panel-neon p-6 space-y-4 text-center">
+              <div className="text-center space-y-2">
+                <div className="inline-flex p-3 rounded-full bg-amber-955/40 text-amber-500 border border-amber-500/20 animate-pulse mx-auto">
+                  <PlayCircle size={24} className="animate-spin text-amber-500" style={{ animationDuration: '3s' }} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-200 font-serif">發出切磋邀請</h3>
+                <p className="text-sm text-gray-400 leading-relaxed font-serif text-center">
+                  正在向同道 <span className="text-amber-400 font-bold">[ {sentInvitation.receiver_name} ]</span> 發起切磋中...
+                  <br />
+                  <span className="text-xs text-rose-400 font-bold mt-1 block">(等待回應剩餘時間：{sentInviteTimeLeft} 秒)</span>
+                </p>
+              </div>
+
+              {isOpponentAccepted ? (
+                <div className="text-xs text-emerald-400 font-bold font-serif animate-pulse pt-2">
+                  對方已接受，正在進入切磋場地...
+                </div>
+              ) : (
+                <div className="pt-2">
+                  <button
+                    id="btn-cancel-invite"
+                    onClick={handleCancelInvite}
+                    className="btn-neon-decline px-6 py-2 text-xs font-bold"
+                  >
+                    召回邀請
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   } catch (err) {
     console.error("BattleTab render error:", err);
     return (
       <div className="p-6 bg-red-950/80 border border-red-500 text-red-200 rounded-xl space-y-2 max-w-md mx-auto my-10 font-mono text-center">
-        <h3 className="font-bold text-sm">⚠️ 對戰畫面渲染出錯 (Render Error)</h3>
+        <h3 className="font-bold text-sm">⚠️ 切磋畫面渲染出錯 (Render Error)</h3>
         <p className="text-xs text-red-400">{err.message}</p>
         <pre className="text-[10px] bg-black/40 p-3 rounded overflow-auto max-h-60 text-left">{err.stack}</pre>
-        <button 
+        <button
           onClick={handleExitBattle}
           className="btn-outline border-red-500/40 text-red-300 py-1.5 px-4 rounded text-xs hover:bg-red-950 mt-2"
         >
-          返回切磋堂
+          返回切磋大廳
         </button>
       </div>
     );

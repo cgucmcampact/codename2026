@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { CARDS } from '../services/cardData';
 import { ApiService, getApiMode } from '../services/api';
-import { 
-  ShieldAlert, Settings2, Power, Check, RefreshCw, 
+import {
+  ShieldAlert, Settings2, Power, Check, RefreshCw,
   Search, Shield, ShieldCheck
 } from 'lucide-react';
 
@@ -11,7 +11,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
   const [targetStaffId, setTargetStaffId] = useState('');
   const [searchedStaffId, setSearchedStaffId] = useState('');
   const [staffQuotas, setStaffQuotas] = useState([]);
-  
+
   // 卡牌設定狀態 (手機端極簡分步 UI)
   const [selectedType, setSelectedType] = useState('equipment'); // 'equipment' | 'skill'
   const [selectedCardId, setSelectedCardId] = useState('');
@@ -63,7 +63,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
 
   // 總開關：系統重置與強踢
   const handleResetSystem = async () => {
-    if (!window.confirm("⚠️ 警告：這將會強制登出所有在線普通玩家，終止並刪除所有正在進行的對局與邀請！\n確定要啟動大掌櫃總開關嗎？")) {
+    if (!window.confirm("⚠️ 警告：這將會強制登出所有在線普通玩家，終止並刪除所有正在進行的對局與邀請！\n確定要啟動總開關嗎？")) {
       return;
     }
     setError('');
@@ -85,7 +85,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
   const handleSearchStaff = async (e) => {
     e.preventDefault();
     if (!targetStaffId.trim()) {
-      setError('請輸入目標工作人員帳號 ID');
+      setError('請輸入目標工作人員ID');
       return;
     }
     fetchStaffQuotas(targetStaffId.trim());
@@ -99,7 +99,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
       const res = await ApiService.adminGetQuotas(staffId);
       if (res.success) {
         setSearchedStaffId(staffId);
-        
+
         // 整理已有的配額，沒有的卡牌設為 0
         const quotaMap = {};
         res.quotas.forEach(q => {
@@ -181,14 +181,14 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
 
   return (
     <div className="space-y-6 flex flex-col w-full max-w-full items-center text-center">
-      
+
       <div className="max-w-md w-full">
         <h2 className="text-xl font-bold text-gray-100 flex items-center justify-center gap-2 font-serif">
           <Settings2 size={22} className="text-red-500" />
-          大掌櫃核心決策主控台
+          管理員主控台
         </h2>
         <p className="text-xs text-gray-400 mt-1.5 font-serif leading-relaxed">
-          本面板限總管理員 (大掌櫃) 使用。在此可管理系統總開關與登入權限，並調整分藥工作人員的卡牌發放配額。
+          在此可管理系統總開關與登入權限，並調整工作人員的卡牌發放配額。
         </p>
       </div>
 
@@ -211,17 +211,17 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
         <div className="flex items-center justify-center gap-2 border-b border-gray-900 pb-2">
           <Power size={18} className="text-rose-500" />
           <h3 className="text-sm font-bold text-gray-300">
-            醫館系統維護與控制
+            系統維護與控制
           </h3>
         </div>
 
         <div className="space-y-4">
           <div className="flex flex-col items-center justify-center gap-2">
             <div className="flex items-center gap-1.5 justify-center">
-              <span className="text-xs text-gray-400 font-serif">登入通道狀態：</span>
+              <span className="text-xs text-gray-400 font-serif">系統狀態：</span>
               {loginEnabled ? (
                 <span className="px-2.5 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono">
-                  🟢 開放弟子登入
+                  🟢 開放玩家登入
                 </span>
               ) : (
                 <span className="px-2.5 py-0.5 rounded bg-rose-950/40 border border-rose-500/30 text-rose-400 text-[10px] font-bold font-mono">
@@ -229,18 +229,17 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
                 </span>
               )}
             </div>
-            
+
             <button
               disabled={loading}
               onClick={handleToggleLogin}
-              className={`w-full px-4 py-2 text-xs font-bold rounded-lg border flex items-center justify-center gap-1.5 transition-all ${
-                loginEnabled 
-                  ? 'bg-rose-950/30 border-rose-500/40 text-rose-400 hover:bg-rose-900/10' 
-                  : 'bg-emerald-950/30 border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/10'
-              }`}
+              className={`w-full px-4 py-2 text-xs font-bold rounded-lg border flex items-center justify-center gap-1.5 transition-all ${loginEnabled
+                ? 'bg-rose-950/30 border-rose-500/40 text-rose-400 hover:bg-rose-900/10'
+                : 'bg-emerald-950/30 border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/10'
+                }`}
             >
               <Power size={13} />
-              {loginEnabled ? "切換：封鎖普通弟子登入" : "切換：開放普通弟子登入"}
+              {loginEnabled ? "切換：封鎖玩家登入" : "切換：開放玩家登入"}
             </button>
           </div>
 
@@ -250,11 +249,8 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
               disabled={loading}
               className="w-full btn-neon-danger py-2.5 text-xs font-bold tracking-wider rounded-lg transition-all"
             >
-              💥 重置系統並強踢弟子
+              💥 重置系統並強踢玩家
             </button>
-            <p className="text-[9px] text-gray-500 font-serif text-center mt-1">
-              *將強制踢出全體在線普通弟子並終止清除所有對局。
-            </p>
           </div>
         </div>
       </div>
@@ -264,7 +260,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
         <div className="flex items-center justify-center gap-2 border-b border-gray-900 pb-2">
           <ShieldCheck size={18} className="text-purple-400" />
           <h3 className="text-sm font-bold text-gray-300">
-            分藥小掌櫃卡牌配額設定
+            工作人員卡牌配額設定
           </h3>
         </div>
 
@@ -272,7 +268,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
           /* 第一步：查詢工作人員帳號 */
           <form onSubmit={handleSearchStaff} className="space-y-3">
             <p className="text-xs text-gray-400 font-serif leading-relaxed text-center">
-              請輸入想要調整配額的「分藥小掌櫃 (game_admin)」帳號 ID（如預設的 `staff`），來查看並編輯其所有 28 張藥方與針灸的分配額度。
+              請輸入想要調整配額的工作人員ID，來查看並編輯其卡片分配額度。
             </p>
             <div className="flex flex-col gap-2">
               <input
@@ -298,7 +294,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
           <form onSubmit={handleUpdateQuota} className="space-y-4 text-left">
             <div className="flex justify-between items-center bg-purple-950/20 p-2.5 rounded-lg border border-purple-900/30 text-xs">
               <span className="text-[11px] text-purple-300 font-bold font-mono">
-                目標帳號: <span className="text-white text-xs font-bold">{searchedStaffId}</span>
+                目標工作人員ID: <span className="text-white text-xs font-bold">{searchedStaffId}</span>
               </span>
               <button
                 type="button"
@@ -309,7 +305,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
                 }}
                 className="text-[10px] text-gray-400 hover:text-white underline font-serif"
               >
-                換人
+                切換人員
               </button>
             </div>
 
@@ -321,8 +317,8 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-500"
               >
-                <option value="equipment">加護裝備卡 (Equipment)</option>
-                <option value="skill">針灸技能卡 (Skill)</option>
+                <option value="equipment">裝備卡 (Equipment)</option>
+                <option value="skill">技能卡 (Skill)</option>
               </select>
             </div>
 
@@ -345,7 +341,7 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
             {/* 3. 顯示當前配額與輸入新配額 */}
             <div className="bg-gray-950/60 p-3 rounded-lg border border-gray-900 flex flex-col items-center justify-center text-center gap-2">
               <div className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">
-                當前配額 (Current Quota)
+                當前配額
               </div>
               <div className="text-base font-black text-purple-400 font-mono">
                 {currentQuotaDisplay}

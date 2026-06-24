@@ -12,7 +12,7 @@ function getSpreadsheet() {
 // 初始化資料庫 (由管理員在前端點擊或開發時執行一次即可)
 function initDatabase() {
   var ss = getSpreadsheet();
-  
+
   // 1. 系統設定
   var configSheet = getOrCreateSheet(ss, "system_config", ["key", "value"]);
   var configData = configSheet.getDataRange().getValues();
@@ -20,7 +20,7 @@ function initDatabase() {
   for (var i = 1; i < configData.length; i++) {
     existingKeys[configData[i][0]] = true;
   }
-  
+
   var defaultConfigValues = [
     ["game_enabled", "true"],
     ["force_logout_time", "0"],
@@ -33,7 +33,7 @@ function initDatabase() {
     ["exp_bingo_line", "150"],
     ["exp_bingo_duplicate", "50"]
   ];
-  
+
   for (var c = 0; c < defaultConfigValues.length; c++) {
     var key = defaultConfigValues[c][0];
     var val = defaultConfigValues[c][1];
@@ -41,14 +41,14 @@ function initDatabase() {
       configSheet.appendRow([key, val]);
     }
   }
-  
+
   // 2. 弟子玩家資料
   getOrCreateSheet(ss, "players", [
     "id", "password", "name", "role", "level", "exp",
     "equipped_head", "equipped_body", "equipped_hands", "equipped_feet", "equipped_sub1", "equipped_sub2",
     "deck", "inventory", "tasks_progress", "last_active"
   ]);
-  
+
   // 建立預設帳號與管理員
   var playersSheet = ss.getSheetByName("players");
   var hasAdmin = false;
@@ -60,14 +60,14 @@ function initDatabase() {
     if (data[i][0] === "staff") hasStaff = true;
     if (data[i][0] === "player1") hasPlayer1 = true;
   }
-  
+
   var defaultTasks = {};
   for (var k = 0; k < 16; k++) {
     defaultTasks[k] = { status: "available", password: "", completed: false };
   }
-  
+
   var defaultInventory = {
-    "skill_card_01": 2, "skill_card_02": 2, "skill_card_03": 2, 
+    "skill_card_01": 2, "skill_card_02": 2, "skill_card_03": 2,
     "skill_card_04": 1, "skill_card_05": 1, "skill_card_06": 1,
     "equip_head_01": 1, "equip_body_02": 1, "equip_hands_02": 1, "equip_feet_02": 1
   };
@@ -83,7 +83,7 @@ function initDatabase() {
       JSON.stringify(defaultDeck), JSON.stringify(defaultInventory), JSON.stringify(defaultTasks), "0"
     ]);
   }
-  
+
   if (!hasStaff) {
     playersSheet.appendRow([
       "staff", "admin123", "分藥掌櫃", "game_admin", 99, 99999,
@@ -91,7 +91,7 @@ function initDatabase() {
       JSON.stringify(defaultDeck), JSON.stringify(defaultInventory), JSON.stringify(defaultTasks), "0"
     ]);
   }
-  
+
   if (!hasPlayer1) {
     playersSheet.appendRow([
       "player1", "123", "試藥弟子小智", "player", 1, 0,
@@ -112,7 +112,7 @@ function initDatabase() {
       "0"
     ]);
   }
-  
+
   // 3. 戰鬥房間表
   var oldBattlesSheet = ss.getSheetByName("battles");
   if (oldBattlesSheet) {
@@ -121,7 +121,7 @@ function initDatabase() {
       ss.deleteSheet(oldBattlesSheet);
     }
   }
-  
+
   getOrCreateSheet(ss, "battles", [
     "battle_id", "p1_id", "p2_id", "status", "winner_id", "start_time",
     "p1_hp", "p1_max_hp", "p1_def", "p1_atk",
@@ -134,22 +134,22 @@ function initDatabase() {
     "r5_p1_cards", "r5_p2_cards",
     "p1_last_action", "p2_last_action"
   ]);
-  
+
   // 4. 對戰邀請表
   getOrCreateSheet(ss, "invitations", [
     "invitation_id", "sender_id", "receiver_id", "status", "created_at"
   ]);
-  
+
   // 5. 管理員發卡額度表
   getOrCreateSheet(ss, "admin_quotas", [
     "admin_id", "card_id", "quota"
   ]);
-  
+
   // 6. QR Code 領取憑證表
   getOrCreateSheet(ss, "qr_codes", [
     "token", "admin_id", "card_id", "status", "claimed_by", "created_at"
   ]);
-  
+
   // 7. 卡牌主資料庫表 (自訂中醫卡牌管理)
   var oldCardsSheet = ss.getSheetByName("cards");
   if (oldCardsSheet) {
@@ -162,7 +162,7 @@ function initDatabase() {
     "ops_any_atk", "ops_any_def", "ops_any_ele",
     "target", "atk_aft", "def_aft", "hp_aft"
   ]);
-  
+
   if (cardsSheet.getLastRow() <= 1) {
     var defaultCards = [
       ["equip_head_01", "太陽穴金針", "equipment", "head", "金", "綠色", 10, 5, "金針刺入雙側太陽穴，激發經絡潛能，使氣力與防護力均衡提升。", "", "", "", "", "", "", "", "", "", "", "", "self", 0, 0, 0],
@@ -228,7 +228,7 @@ function initDatabase() {
       tasksConfigSheet.appendRow(defaultTasksConfig[t]);
     }
   }
-  
+
   // 9. 等級對照工作表
   var oldLevelConfigSheet = ss.getSheetByName("level_config");
   if (oldLevelConfigSheet) {
@@ -245,10 +245,10 @@ function initDatabase() {
       levelConfigSheet.appendRow([l, minExp, baseHp]);
     }
   }
-  
+
   // 10. 進行中任務工作表
   getOrCreateSheet(ss, "active_tasks", ["player_id", "grid_index", "password", "status", "created_at"]);
-  
+
   return { success: true, message: "百草醫館資料庫已初始化！" };
 }
 
@@ -276,21 +276,21 @@ function handleRequest(e) {
     var params = e.parameter;
     var action = params.action;
     var data = {};
-    
+
     if (e.postData && e.postData.contents) {
       data = JSON.parse(e.postData.contents);
       if (!action) action = data.action;
     }
-    
+
     if (params.payload) {
       data = JSON.parse(params.payload);
     }
-    
+
     result = routeAction(action, data, params);
   } catch (err) {
     result = { success: false, error: err.toString(), stack: err.stack };
   }
-  
+
   var output = ContentService.createTextOutput(JSON.stringify(result));
   output.setMimeType(ContentService.MimeType.JSON);
   return output;
@@ -298,7 +298,7 @@ function handleRequest(e) {
 
 function routeAction(action, data, params) {
   var ss = getSpreadsheet();
-  
+
   if (action !== "login" && action !== "setup") {
     // 檢查強制登出設定
     var forceLogoutTime = Number(getSystemConfig(ss, "force_logout_time")) || 0;
@@ -308,7 +308,7 @@ function routeAction(action, data, params) {
       if (reqUser && reqUser.role !== "admin" && reqUser.role !== "game_admin") {
         var lastActive = Number(reqUser.last_active) || 0;
         if (lastActive < forceLogoutTime) {
-          return { success: false, error: "FORCE_LOGOUT", message: "掌櫃啟動了總開關，全體弟子強制登出中！" };
+          return { success: false, error: "FORCE_LOGOUT", message: "管理員已關閉通道，所有玩家強制登出中" };
         }
       }
     }
@@ -318,10 +318,10 @@ function routeAction(action, data, params) {
       if (requesterId) {
         var reqUser = getPlayerRow(ss, requesterId);
         if (reqUser && reqUser.role !== "admin" && reqUser.role !== "game_admin") {
-          return { success: false, error: "伺服器維護中，目前試藥人暫時無法進入醫館。" };
+          return { success: false, error: "伺服器維護中，目前玩家無法進入培育場。" };
         }
       } else {
-        return { success: false, error: "醫館關閉中" };
+        return { success: false, error: "培育場關閉中" };
       }
     }
   }
@@ -329,79 +329,79 @@ function routeAction(action, data, params) {
   switch (action) {
     case "setup":
       return initDatabase();
-      
+
     case "login":
       return handleLogin(ss, data.username, data.password);
-      
+
     case "get_cards":
       return getCardsList(ss);
 
     case "get_tasks_config":
       return getTasksConfigList(ss);
-      
+
     case "get_player_data":
       return getPlayerData(ss, data.player_id);
-      
+
     case "update_equipment":
       return updateEquipment(ss, data.player_id, data.equipped);
-      
+
     case "update_deck":
       return updateDeck(ss, data.player_id, data.deck);
-      
+
     case "get_online_players":
       return getOnlinePlayers(ss, data.player_id);
-      
+
     case "invite_player":
       return invitePlayer(ss, data.sender_id, data.receiver_id);
-      
+
     case "check_invitations":
       return checkInvitations(ss, data.player_id);
-      
+
     case "respond_invitation":
       return respondInvitation(ss, data.player_id, data.invitation_id, data.accept);
-      
+
     case "get_battle_state":
       return getBattleState(ss, data.battle_id, data.player_id);
-      
+
     case "abandon_battle":
       return abandonBattle(ss, data.battle_id, data.player_id);
-      
+
     case "submit_battle_action":
       return submitBattleAction(ss, data.battle_id, data.player_id, data.card_id);
-      
+
     case "claim_qr_code":
       return claimQrCode(ss, data.player_id, data.token);
-      
+
     case "claim_task":
       return claimTask(ss, data.player_id, data.grid_index, data.password);
-      
+
     case "start_task":
       return startTask(ss, data.player_id, data.grid_index);
-      
+
     case "admin_generate_qr":
       return adminGenerateQr(ss, data.admin_id, data.card_id);
-      
+
     case "admin_get_tasks":
       return adminGetTasks(ss, data.admin_id);
-      
+
     case "admin_get_quotas":
       return adminGetQuotas(ss, data.admin_id);
-      
+
     case "game_admin_toggle_login":
       return gameAdminToggleLogin(ss, data.admin_id, data.enabled);
-      
+
     case "game_admin_update_player":
       return gameAdminUpdatePlayer(ss, data.admin_id, data.target_player_id, data.fields);
-      
+
     case "game_admin_reset_system":
       return gameAdminResetSystem(ss, data.admin_id);
-      
+
     case "game_admin_set_system_configs":
       return gameAdminSetSystemConfigs(ss, data.admin_id, data.configs);
-      
+
     case "get_level_config":
       return getLevelConfigList(ss);
-      
+
     default:
       return { success: false, error: "未知的請求動作 (" + action + ")" };
   }
@@ -412,16 +412,16 @@ function getCardsList(ss) {
   var sheet = ss.getSheetByName("cards");
   var data = sheet.getDataRange().getValues();
   var list = [];
-  
+
   if (data.length <= 1) return { success: true, cards: [] };
-  
+
   var headers = data[0];
   var colMap = {};
   for (var c = 0; c < headers.length; c++) {
     colMap[String(headers[c]).trim().toLowerCase()] = c;
   }
-  
-  var getVal = function(row, fieldNames, defaultVal) {
+
+  var getVal = function (row, fieldNames, defaultVal) {
     for (var f = 0; f < fieldNames.length; f++) {
       var idx = colMap[fieldNames[f].toLowerCase()];
       if (idx !== undefined && idx !== -1) {
@@ -430,7 +430,7 @@ function getCardsList(ss) {
     }
     return defaultVal;
   };
-  
+
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     list.push({
@@ -438,7 +438,7 @@ function getCardsList(ss) {
       name: String(getVal(row, ["name", "名稱"], "")),
       type: String(getVal(row, ["type", "類型"], "")),
       sub_type: String(getVal(row, ["sub_type", "部位", "子類型"], "")),
-      element: String(getVal(row, ["element", "五行"], "")),
+      element: String(getVal(row, ["element", "屬性"], "")),
       rarity: String(getVal(row, ["rarity", "稀有度"], "")),
       atk_mod: Number(getVal(row, ["atk_mod", "內功", "初始內功"], 0)),
       def_mod: Number(getVal(row, ["def_mod", "衛氣", "初始衛氣"], 0)),
@@ -454,7 +454,7 @@ function getCardsList(ss) {
       ops_any_atk: String(getVal(row, ["ops_any_atk"], "")),
       ops_any_def: String(getVal(row, ["ops_any_def"], "")),
       ops_any_ele: String(getVal(row, ["ops_any_ele"], "")),
-      target: String(getVal(row, ["target", "目標"], "self")),
+      target: String(getVal(row, ["target", "對象"], "self")),
       atk_aft: Number(getVal(row, ["atk_aft", "觸發後內功", "內功強度"], 0)),
       def_aft: Number(getVal(row, ["def_aft", "觸發後衛氣", "衛氣強度"], 0)),
       hp_aft: Number(getVal(row, ["hp_aft", "觸發後營血", "營血調養"], 0))
@@ -475,7 +475,7 @@ function getTasksConfigList(ss) {
       name: String(data[i][1]),
       description: String(data[i][2]),
       reward_card_id: String(data[i][3] || ""),
-      detail: String(data[i][4] || "詳細藥理修煉規則：請至醫館找執藥師進行該項藥物辨識或煎煮修煉。完成後由執藥師認證並核發通關代碼。")
+      detail: String(data[i][4] || "詳細小任務規則及通關代碼，請洽工作人員。")
     });
   }
   return { success: true, tasks: list };
@@ -486,16 +486,16 @@ function getCardsDict(ss) {
   var sheet = ss.getSheetByName("cards");
   var data = sheet.getDataRange().getValues();
   var dict = {};
-  
+
   if (data.length <= 1) return dict;
-  
+
   var headers = data[0];
   var colMap = {};
   for (var c = 0; c < headers.length; c++) {
     colMap[String(headers[c]).trim().toLowerCase()] = c;
   }
-  
-  var getVal = function(row, fieldNames, defaultVal) {
+
+  var getVal = function (row, fieldNames, defaultVal) {
     for (var f = 0; f < fieldNames.length; f++) {
       var idx = colMap[fieldNames[f].toLowerCase()];
       if (idx !== undefined && idx !== -1) {
@@ -504,7 +504,7 @@ function getCardsDict(ss) {
     }
     return defaultVal;
   };
-  
+
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     var id = String(getVal(row, ["id"], ""));
@@ -513,7 +513,7 @@ function getCardsDict(ss) {
       name: String(getVal(row, ["name", "名稱"], "")),
       type: String(getVal(row, ["type", "類型"], "")),
       sub_type: String(getVal(row, ["sub_type", "部位", "子類型"], "")),
-      element: String(getVal(row, ["element", "五行"], "")),
+      element: String(getVal(row, ["element", "屬性"], "")),
       rarity: String(getVal(row, ["rarity", "稀有度"], "")),
       atk_mod: Number(getVal(row, ["atk_mod", "內功", "初始內功"], 0)),
       def_mod: Number(getVal(row, ["def_mod", "衛氣", "初始衛氣"], 0)),
@@ -529,7 +529,7 @@ function getCardsDict(ss) {
       ops_any_atk: String(getVal(row, ["ops_any_atk"], "")),
       ops_any_def: String(getVal(row, ["ops_any_def"], "")),
       ops_any_ele: String(getVal(row, ["ops_any_ele"], "")),
-      target: String(getVal(row, ["target", "目標"], "self")),
+      target: String(getVal(row, ["target", "對象"], "self")),
       atk_aft: Number(getVal(row, ["atk_aft", "觸發後內功", "內功強度"], 0)),
       def_aft: Number(getVal(row, ["def_aft", "觸發後衛氣", "衛氣強度"], 0)),
       hp_aft: Number(getVal(row, ["hp_aft", "觸發後營血", "營血調養"], 0))
@@ -659,18 +659,18 @@ function getPlayerRow(ss, id) {
 // 更新玩家特定儲存格
 function updatePlayerRow(ss, rowNum, playerObj) {
   var sheet = ss.getSheetByName("players");
-  sheet.getRange(rowNum, 5).setValue(playerObj.level); 
-  sheet.getRange(rowNum, 6).setValue(playerObj.exp); 
-  sheet.getRange(rowNum, 7).setValue(playerObj.equipped.head); 
-  sheet.getRange(rowNum, 8).setValue(playerObj.equipped.body); 
-  sheet.getRange(rowNum, 9).setValue(playerObj.equipped.hands); 
-  sheet.getRange(rowNum, 10).setValue(playerObj.equipped.feet); 
-  sheet.getRange(rowNum, 11).setValue(playerObj.equipped.sub1); 
-  sheet.getRange(rowNum, 12).setValue(playerObj.equipped.sub2); 
-  sheet.getRange(rowNum, 13).setValue(JSON.stringify(playerObj.deck)); 
-  sheet.getRange(rowNum, 14).setValue(JSON.stringify(playerObj.inventory)); 
-  sheet.getRange(rowNum, 15).setValue(JSON.stringify(playerObj.tasks_progress)); 
-  sheet.getRange(rowNum, 16).setValue(playerObj.last_active); 
+  sheet.getRange(rowNum, 5).setValue(playerObj.level);
+  sheet.getRange(rowNum, 6).setValue(playerObj.exp);
+  sheet.getRange(rowNum, 7).setValue(playerObj.equipped.head);
+  sheet.getRange(rowNum, 8).setValue(playerObj.equipped.body);
+  sheet.getRange(rowNum, 9).setValue(playerObj.equipped.hands);
+  sheet.getRange(rowNum, 10).setValue(playerObj.equipped.feet);
+  sheet.getRange(rowNum, 11).setValue(playerObj.equipped.sub1);
+  sheet.getRange(rowNum, 12).setValue(playerObj.equipped.sub2);
+  sheet.getRange(rowNum, 13).setValue(JSON.stringify(playerObj.deck));
+  sheet.getRange(rowNum, 14).setValue(JSON.stringify(playerObj.inventory));
+  sheet.getRange(rowNum, 15).setValue(JSON.stringify(playerObj.tasks_progress));
+  sheet.getRange(rowNum, 16).setValue(playerObj.last_active);
 }
 
 // 登入
@@ -679,17 +679,17 @@ function handleLogin(ss, username, password) {
   var player = getPlayerRow(ss, username);
   if (!player) return { success: false, error: "帳號不存在" };
   if (player.password !== password) return { success: false, error: "密碼錯誤" };
-  
+
   var gameEnabled = getSystemConfig(ss, "game_enabled") === "true";
   if (!gameEnabled && player.role !== "admin" && player.role !== "game_admin") {
-    return { success: false, error: "伺服器維護中，目前試藥人暫時無法進入醫館。" };
+    return { success: false, error: "伺服器維護中，目前玩家無法進入培育中心。" };
   }
-  
+
   player.last_active = new Date().getTime();
   updatePlayerRow(ss, player.rowNum, player);
-  
+
   delete player.password;
-  
+
   return { success: true, player: player, system_login_enabled: gameEnabled };
 }
 
@@ -697,10 +697,10 @@ function handleLogin(ss, username, password) {
 function getPlayerData(ss, playerId) {
   var player = getPlayerRow(ss, playerId);
   if (!player) return { success: false, error: "玩家不存在" };
-  
+
   player.last_active = new Date().getTime();
   updatePlayerRow(ss, player.rowNum, player);
-  
+
   delete player.password;
   return { success: true, player: player };
 }
@@ -709,7 +709,7 @@ function getPlayerData(ss, playerId) {
 function updateEquipment(ss, playerId, equipped) {
   var player = getPlayerRow(ss, playerId);
   if (!player) return { success: false, error: "玩家不存在" };
-  
+
   var slots = ["head", "body", "hands", "feet", "sub1", "sub2"];
   for (var i = 0; i < slots.length; i++) {
     var slot = slots[i];
@@ -720,11 +720,11 @@ function updateEquipment(ss, playerId, equipped) {
       }
     }
   }
-  
+
   player.equipped = equipped;
   player.last_active = new Date().getTime();
   updatePlayerRow(ss, player.rowNum, player);
-  
+
   delete player.password;
   return { success: true, player: player };
 }
@@ -733,11 +733,11 @@ function updateEquipment(ss, playerId, equipped) {
 function updateDeck(ss, playerId, deck) {
   var player = getPlayerRow(ss, playerId);
   if (!player) return { success: false, error: "玩家不存在" };
-  
+
   if (!Array.isArray(deck) || deck.length !== 10) {
     return { success: false, error: "牌組卡槽必須為 10 個！" };
   }
-  
+
   var uniqueCards = {};
   for (var i = 0; i < deck.length; i++) {
     var cid = deck[i];
@@ -751,11 +751,11 @@ function updateDeck(ss, playerId, deck) {
     //   return { success: false, error: "背包中無此卡牌，無法配置！" };
     // }
   }
-  
+
   player.deck = deck;
   player.last_active = new Date().getTime();
   updatePlayerRow(ss, player.rowNum, player);
-  
+
   delete player.password;
   return { success: true, player: player };
 }
@@ -766,7 +766,7 @@ function getOnlinePlayers(ss, playerId) {
   var data = sheet.getDataRange().getValues();
   var onlineList = [];
   var now = new Date().getTime();
-  
+
   for (var i = 1; i < data.length; i++) {
     var pId = String(data[i][0]);
     if (pId.toLowerCase() !== String(playerId).toLowerCase() && data[i][3] === "player") {
@@ -780,13 +780,13 @@ function getOnlinePlayers(ss, playerId) {
       }
     }
   }
-  
+
   var me = getPlayerRow(ss, playerId);
   if (me) {
     me.last_active = now;
     updatePlayerRow(ss, me.rowNum, me);
   }
-  
+
   return { success: true, online_players: onlineList };
 }
 
@@ -794,22 +794,22 @@ function getOnlinePlayers(ss, playerId) {
 function invitePlayer(ss, senderId, receiverId) {
   var sheet = ss.getSheetByName("invitations");
   var data = sheet.getDataRange().getValues();
-  
+
   // 檢查是否已存在 pending 的相同邀請
   for (var i = 1; i < data.length; i++) {
     if (data[i][1] === senderId && data[i][2] === receiverId && data[i][3] === "pending") {
       return { success: true, invitation_id: data[i][0] };
     }
   }
-  
-  var invId = "INV_" + new Date().getTime() + "_" + Math.floor(Math.random()*1000);
-  
+
+  var invId = "INV_" + new Date().getTime() + "_" + Math.floor(Math.random() * 1000);
+
   for (var i = 1; i < data.length; i++) {
     if (data[i][1] === senderId && data[i][3] === "pending") {
       sheet.getRange(i + 1, 4).setValue("expired");
     }
   }
-  
+
   sheet.appendRow([invId, senderId, receiverId, "pending", String(new Date().getTime())]);
   return { success: true, invitation_id: invId };
 }
@@ -819,22 +819,22 @@ function checkInvitations(ss, playerId) {
   var sheet = ss.getSheetByName("invitations");
   var data = sheet.getDataRange().getValues();
   var now = new Date().getTime();
-  
+
   var inbound = null;
   var outboundAccepted = null;
-  
+
   for (var i = data.length - 1; i >= 1; i--) {
     var invId = data[i][0];
     var sender = data[i][1];
     var receiver = data[i][2];
     var status = data[i][3];
     var createdAt = Number(data[i][4]);
-    
+
     if (now - createdAt > 30000 && status === "pending") {
       sheet.getRange(i + 1, 4).setValue("expired");
       continue;
     }
-    
+
     if (receiver === playerId && status === "pending") {
       var senderPlayer = getPlayerRow(ss, sender);
       inbound = {
@@ -844,14 +844,14 @@ function checkInvitations(ss, playerId) {
       };
       break;
     }
-    
+
     var statusStr = String(status);
     if (String(sender).toLowerCase() === String(playerId).toLowerCase() && statusStr.indexOf("accepted") === 0) {
       var bId = "";
       if (statusStr.indexOf("accepted:") === 0) {
         bId = statusStr.split(":")[1];
       }
-      
+
       if (!bId) {
         var battlesSheet = ss.getSheetByName("battles");
         var bData = battlesSheet.getDataRange().getValues();
@@ -865,7 +865,7 @@ function checkInvitations(ss, playerId) {
           }
         }
       }
-      
+
       outboundAccepted = {
         invitation_id: invId,
         battle_id: bId
@@ -874,7 +874,7 @@ function checkInvitations(ss, playerId) {
       break;
     }
   }
-  
+
   return { success: true, inbound: inbound, outbound_accepted: outboundAccepted };
 }
 
@@ -885,7 +885,7 @@ function respondInvitation(ss, receiverId, invId, accept) {
   var row = -1;
   var senderId = "";
   var now = new Date().getTime();
-  
+
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] === invId && data[i][3] === "pending") {
       var createdAt = Number(data[i][4]);
@@ -898,32 +898,32 @@ function respondInvitation(ss, receiverId, invId, accept) {
       break;
     }
   }
-  
+
   if (row === -1) {
     return { success: false, error: "邀請已過期或不存在" };
   }
-  
+
   if (!accept) {
     sheet.getRange(row, 4).setValue("rejected");
     return { success: true, status: "rejected" };
   }
-  
+
   var p1 = getPlayerRow(ss, senderId);
   var p2 = getPlayerRow(ss, receiverId);
-  
+
   if (!p1 || !p2) {
     return { success: false, error: "玩家資料遺失" };
   }
-  
+
   var cardsDict = getCardsDict(ss);
-  
+
   var p1Stats = calculateStatsWithCustomCards(ss, p1, cardsDict);
   var p2Stats = calculateStatsWithCustomCards(ss, p2, cardsDict);
-  
+
   var battleId = "BAT_" + new Date().getTime();
   sheet.getRange(row, 4).setValue("accepted:" + battleId);
   var battlesSheet = ss.getSheetByName("battles");
-  
+
   battlesSheet.appendRow([
     battleId, senderId, receiverId, "active", "", String(new Date().getTime()),
     p1Stats.maxHp, p1Stats.maxHp, p1Stats.def, p1Stats.atk,
@@ -936,16 +936,16 @@ function respondInvitation(ss, receiverId, invId, accept) {
     "", "", // r5
     "", ""  // last_action
   ]);
-  
+
   return { success: true, status: "accepted", battle_id: battleId };
 }
- 
+
 function calculateStatsWithCustomCards(ss, player, cardsDict) {
   var level = player.level || 1;
   var baseHp = getPlayerBaseHpByLevel(ss, level);
   var bonusAtk = 0;
   var bonusDef = 0;
-  
+
   var slots = ["head", "body", "hands", "feet", "sub1", "sub2"];
   for (var i = 0; i < slots.length; i++) {
     var cardId = player.equipped[slots[i]];
@@ -954,7 +954,7 @@ function calculateStatsWithCustomCards(ss, player, cardsDict) {
       bonusDef += cardsDict[cardId].def_mod || 0;
     }
   }
-  
+
   return {
     maxHp: baseHp,
     atk: Math.max(0, 10 + bonusAtk),
@@ -967,38 +967,38 @@ function getBattleState(ss, battleId, playerId) {
   var sheet = ss.getSheetByName("battles");
   var data = sheet.getDataRange().getValues();
   var row = -1;
-  
+
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] === battleId) {
       row = i + 1;
       break;
     }
   }
-  
+
   if (row === -1) {
-    return { success: false, error: "找不到該對戰房" };
+    return { success: false, error: "找不到該切磋場地" };
   }
-  
+
   var bRow = data[row - 1];
   var status = bRow[3];
   var winnerId = bRow[4];
   var startTime = Number(bRow[5]);
   var p1Id = bRow[1];
   var p2Id = bRow[2];
-  
+
   var now = new Date().getTime();
-  
+
   // 1. 分段出牌超時自動結算判定 (21秒 = 15秒回合時間 + 4秒動畫展示 + 2秒網路緩衝)
   if (status === "active") {
     var p1Action = bRow[14];
     var p2Action = bRow[15];
-    
+
     if (p1Action === "waiting") {
       // 階段 1：等待 P1 出牌超時
       if (now - startTime > 21000) {
         sheet.getRange(row, 15).setValue("");
         sheet.getRange(row, 6).setValue(String(now));
-        
+
         bRow[14] = "";
         bRow[5] = now;
         startTime = now;
@@ -1008,9 +1008,9 @@ function getBattleState(ss, battleId, playerId) {
       if (now - startTime > 21000) {
         sheet.getRange(row, 16).setValue("");
         bRow[15] = "";
-        
+
         resolveRound(ss, row, bRow);
-        
+
         // 重新讀取更新後的對戰數據
         data = sheet.getDataRange().getValues();
         bRow = data[row - 1];
@@ -1020,13 +1020,13 @@ function getBattleState(ss, battleId, playerId) {
       }
     }
   }
-  
+
   // 2. 對戰安全超時結算 (3分鐘)
   if (status === "active" && (now - startTime > 180000)) {
     status = "ended";
     var p1Hp = Number(bRow[6]);
     var p2Hp = Number(bRow[10]);
-    
+
     if (p1Hp > p2Hp) {
       winnerId = p1Id;
     } else if (p2Hp > p1Hp) {
@@ -1034,13 +1034,13 @@ function getBattleState(ss, battleId, playerId) {
     } else {
       winnerId = "DRAW";
     }
-    
-    sheet.getRange(row, 4).setValue(status); 
-    sheet.getRange(row, 5).setValue(winnerId); 
-    
+
+    sheet.getRange(row, 4).setValue(status);
+    sheet.getRange(row, 5).setValue(winnerId);
+
     distributeBattleRewards(ss, p1Id, p2Id, winnerId);
   }
-  
+
   return {
     success: true,
     battle: {
@@ -1103,7 +1103,7 @@ function abandonBattle(ss, battleId, playerId) {
   var p1Id = bRow[1];
   var p2Id = bRow[2];
   if (playerId !== p1Id && playerId !== p2Id) {
-    return { success: false, error: "你不在這場對戰中" };
+    return { success: false, error: "你不在這場切磋中" };
   }
 
   sheet.getRange(row, 4).setValue("abandoned");
@@ -1118,21 +1118,21 @@ function submitBattleAction(ss, battleId, playerId, cardId) {
   var sheet = ss.getSheetByName("battles");
   var data = sheet.getDataRange().getValues();
   var row = -1;
-  
+
   for (var i = 1; i < data.length; i++) {
     if (data[i][0] === battleId) {
       row = i + 1;
       break;
     }
   }
-  
-  if (row === -1) return { success: false, error: "對戰不存在" };
+
+  if (row === -1) return { success: false, error: "切磋不存在" };
   var bRow = data[row - 1];
-  if (bRow[3] !== "active") return { success: false, error: "對戰已結束" };
-  
+  if (bRow[3] !== "active") return { success: false, error: "切磋已結束" };
+
   var p1Id = bRow[1];
   var p2Id = bRow[2];
-  
+
   if (playerId === p1Id) {
     if (bRow[14] !== "waiting") return { success: false, error: "您已出過牌" };
     sheet.getRange(row, 15).setValue(cardId);
@@ -1143,107 +1143,107 @@ function submitBattleAction(ss, battleId, playerId, cardId) {
     if (bRow[15] !== "waiting") return { success: false, error: "您已出過牌" };
     sheet.getRange(row, 16).setValue(cardId);
   } else {
-    return { success: false, error: "您非此戰鬥之玩家" };
+    return { success: false, error: "您非此切磋之參與方" };
   }
-  
+
   var updatedRow = sheet.getRange(row, 1, 1, 29).getValues()[0];
   var p1Action = updatedRow[14];
   var p2Action = updatedRow[15];
-  
+
   if (p1Action !== "waiting" && p2Action !== "waiting") {
     resolveRound(ss, row, updatedRow);
   }
-  
+
   return getBattleState(ss, battleId, playerId);
 }
 
 // 回合結算
 function resolveRound(ss, rowNum, bRow) {
   var battleSheet = ss.getSheetByName("battles");
-  
+
   var battleId = bRow[0];
   var p1Id = bRow[1];
   var p2Id = bRow[2];
-  
+
   var p1Hp = Number(bRow[6]);
   var p1MaxHp = Number(bRow[7]);
   var p1BaseDef = Number(bRow[8]);
   var p1BaseAtk = Number(bRow[9]);
-  
+
   var p2Hp = Number(bRow[10]);
   var p2MaxHp = Number(bRow[11]);
   var p2BaseDef = Number(bRow[12]);
   var p2BaseAtk = Number(bRow[13]);
-  
+
   var p1CardId = bRow[14];
   var p2CardId = bRow[15];
   var roundNum = Number(bRow[16]);
   var logArr = [];
-  
+
   var cardsDict = getCardsDict(ss);
-  
+
   var p1CardIds = (p1CardId && p1CardId !== "waiting") ? p1CardId.split(",") : [];
   var p2CardIds = (p2CardId && p2CardId !== "waiting") ? p2CardId.split(",") : [];
-  
+
   var p1Cards = [];
   for (var i = 0; i < p1CardIds.length; i++) {
     if (cardsDict[p1CardIds[i]]) p1Cards.push(cardsDict[p1CardIds[i]]);
   }
-  
+
   var p2Cards = [];
   for (var j = 0; j < p2CardIds.length; j++) {
     if (cardsDict[p2CardIds[j]]) p2Cards.push(cardsDict[p2CardIds[j]]);
   }
-  
+
   var p1Stats = { atk: p1BaseAtk, def: p1BaseDef };
   var p2Stats = { atk: p2BaseAtk, def: p2BaseDef };
-  
+
   var effects = calculateRoundEffects(p1Cards, p2Cards, p1Stats, p2Stats);
-  
+
   var p1RoundAtk = Math.max(0, p1BaseAtk + effects.p1AtkMod);
   var p1RoundDef = Math.max(0, p1BaseDef + effects.p1DefMod);
   var p2RoundAtk = Math.max(0, p2BaseAtk + effects.p2AtkMod);
   var p2RoundDef = Math.max(0, p2BaseDef + effects.p2DefMod);
-  
+
   var dmgToP1 = Math.max(0, p2RoundAtk - p1RoundDef);
   var dmgToP2 = Math.max(0, p1RoundAtk - p2RoundDef);
-  
+
   var nextP1HpFinal = Math.min(p1MaxHp, Math.max(0, p1Hp - dmgToP1 + effects.p1HpMod));
   var nextP2HpFinal = Math.min(p2MaxHp, Math.max(0, p2Hp - dmgToP2 + effects.p2HpMod));
-  
+
   var p1CardNames = [];
   for (var a = 0; a < p1Cards.length; a++) {
     p1CardNames.push(p1Cards[a].name + "(" + (effects.p1TriggerStates[a] ? "觸發" : "未觸發") + ")");
   }
-  if (p1CardNames.length === 0) p1CardNames.push("空過");
-  
+  if (p1CardNames.length === 0) p1CardNames.push("未出牌");
+
   var p2CardNames = [];
   for (var b = 0; b < p2Cards.length; b++) {
     p2CardNames.push(p2Cards[b].name + "(" + (effects.p2TriggerStates[b] ? "觸發" : "未觸發") + ")");
   }
-  if (p2CardNames.length === 0) p2CardNames.push("空過");
-  
+  if (p2CardNames.length === 0) p2CardNames.push("未出牌");
+
   var p1Log = "[" + p1Id + "] 出牌「" + p1CardNames.join(" + ") + "」，攻擊達 " + p1RoundAtk + "，防護力達 " + p1RoundDef;
   var p2Log = "[" + p2Id + "] 出牌「" + p2CardNames.join(" + ") + "」，攻擊達 " + p2RoundAtk + "，防護力達 " + p2RoundDef;
-  
+
   var p1SkillNet = effects.p1HpMod;
   var p2SkillNet = effects.p2HpMod;
   var p1SkillLog = p1SkillNet >= 0 ? "回復 " + p1SkillNet + " 氣血" : "技能受損 " + Math.abs(p1SkillNet);
   var p2SkillLog = p2SkillNet >= 0 ? "回復 " + p2SkillNet + " 氣血" : "技能受損 " + Math.abs(p2SkillNet);
-  
-  var damageLog = "結算: [" + p1Id + "] 受到傷害: " + (dmgToP1 + (p1SkillNet < 0 ? Math.abs(p1SkillNet) : 0)) + 
-                 " (物理 " + dmgToP1 + " + 技能 " + (p1SkillNet < 0 ? Math.abs(p1SkillNet) : 0) + "，回復 " + (p1SkillNet > 0 ? p1SkillNet : 0) + " HP); " +
-                 "[" + p2Id + "] 受到傷害: " + (dmgToP2 + (p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0)) + 
-                 " (物理 " + dmgToP2 + " + 技能 " + (p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0) + "，回復 " + (p2SkillNet > 0 ? p2SkillNet : 0) + " HP)";
-  
+
+  var damageLog = "結算: [" + p1Id + "] 受到傷害: " + (dmgToP1 + (p1SkillNet < 0 ? Math.abs(p1SkillNet) : 0)) +
+    " (物理 " + dmgToP1 + " + 技能 " + (p1SkillNet < 0 ? Math.abs(p1SkillNet) : 0) + "，回復 " + (p1SkillNet > 0 ? p1SkillNet : 0) + " HP); " +
+    "[" + p2Id + "] 受到傷害: " + (dmgToP2 + (p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0)) +
+    " (物理 " + dmgToP2 + " + 技能 " + (p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0) + "，回復 " + (p2SkillNet > 0 ? p2SkillNet : 0) + " HP)";
+
   logArr.push("--- 回合 " + roundNum + " ---");
   logArr.push(p1Log);
   logArr.push(p2Log);
   logArr.push(damageLog);
-  
+
   var status = "active";
   var winnerId = "";
-  
+
   if (nextP1HpFinal <= 0 && nextP2HpFinal <= 0) {
     status = "ended";
     winnerId = "DRAW";
@@ -1269,24 +1269,24 @@ function resolveRound(ss, rowNum, bRow) {
       logArr.push("五回合戰罷，雙方氣血相同，判定平局！");
     }
   }
-  
+
   battleSheet.getRange(rowNum, 6).setValue(String(new Date().getTime()));
   battleSheet.getRange(rowNum, 7).setValue(nextP1HpFinal);
   battleSheet.getRange(rowNum, 11).setValue(nextP2HpFinal);
   battleSheet.getRange(rowNum, 15).setValue("waiting");
   battleSheet.getRange(rowNum, 16).setValue("waiting");
   battleSheet.getRange(rowNum, 17).setValue(roundNum + 1);
-  
+
   // 將出牌記錄在每輪的獨立欄位中
   var colP1 = 18 + (roundNum - 1) * 2;
   var colP2 = 19 + (roundNum - 1) * 2;
   battleSheet.getRange(rowNum, colP1).setValue(p1CardId);
   battleSheet.getRange(rowNum, colP2).setValue(p2CardId);
-  
+
   // 記錄上回合雙方的出牌到 last_action 欄位 (第 28, 29 欄)
   battleSheet.getRange(rowNum, 28).setValue(p1CardId);
   battleSheet.getRange(rowNum, 29).setValue(p2CardId);
-  
+
   if (status === "ended") {
     battleSheet.getRange(rowNum, 4).setValue("ended");
     battleSheet.getRange(rowNum, 5).setValue(winnerId);
@@ -1510,16 +1510,16 @@ function getSystemConfigNum(ss, key, defaultVal) {
 function distributeBattleRewards(ss, p1Id, p2Id, winnerId) {
   var p1 = getPlayerRow(ss, p1Id);
   var p2 = getPlayerRow(ss, p2Id);
-  
+
   if (!p1 || !p2) return;
-  
+
   var expWin = getSystemConfigNum(ss, "exp_battle_win", 50);
   var expLose = getSystemConfigNum(ss, "exp_battle_lose", 20);
   var expDraw = getSystemConfigNum(ss, "exp_battle_draw", 30);
-  
+
   var p1ExpGained = 15;
   var p2ExpGained = 15;
-  
+
   if (winnerId === p1Id) {
     p1ExpGained = expWin; p2ExpGained = expLose;
   } else if (winnerId === p2Id) {
@@ -1527,7 +1527,7 @@ function distributeBattleRewards(ss, p1Id, p2Id, winnerId) {
   } else if (winnerId === "DRAW") {
     p1ExpGained = expDraw; p2ExpGained = expDraw;
   }
-  
+
   addExpAndCheckLevel(ss, p1, p1ExpGained);
   addExpAndCheckLevel(ss, p2, p2ExpGained);
 }
@@ -1547,63 +1547,63 @@ function claimQrCode(ss, playerId, token) {
   var qData = qrSheet.getDataRange().getValues();
   var row = -1;
   var cardId = "";
-  
+
   for (var i = 1; i < qData.length; i++) {
     if (qData[i][0] === token) {
       cardId = qData[i][2];
       if (qData[i][3] !== "active") {
-        return { success: false, error: "此兌換香箋已被使用或失效", card_id: cardId };
+        return { success: false, error: "此兌換代碼已使用或失效", card_id: cardId };
       }
       row = i + 1;
       break;
     }
   }
-  
+
   if (row === -1) {
-    return { success: false, error: "無效的領取憑證 (QR Token)" };
+    return { success: false, error: "無效的領取憑證" };
   }
-  
+
   var player = getPlayerRow(ss, playerId);
-  if (!player) return { success: false, error: "試藥人不存在" };
-  
+  if (!player) return { success: false, error: "玩家不存在" };
+
   var message = "";
   var expGained = 0;
-  
+
   if (player.inventory[cardId]) {
     expGained = getSystemConfigNum(ss, "exp_qr_duplicate", 80);
-    message = "領取成功！已擁有此方劑 [" + getCardName(ss, cardId) + "]，自動轉換為 " + expGained + " 點氣血修煉值！";
+    message = "領取成功！已擁有此卡牌 [" + getCardName(ss, cardId) + "]，自動轉換為 " + expGained + " 點氣血修煉值！";
     addExpAndCheckLevel(ss, player, expGained);
   } else {
     player.inventory[cardId] = 1;
-    message = "領取成功！獲得方劑/加護: " + getCardName(ss, cardId);
+    message = "領取成功！獲得卡牌: " + getCardName(ss, cardId);
     updatePlayerRow(ss, player.rowNum, player);
   }
-  
+
   qrSheet.getRange(row, 4).setValue("claimed");
   qrSheet.getRange(row, 5).setValue(playerId);
-  
+
   var freshPlayer = getPlayerRow(ss, playerId);
   delete freshPlayer.password;
-  
+
   return { success: true, message: message, player: freshPlayer, card_id: cardId };
 }
 
 // 執行百子藥櫃任務
 function startTask(ss, playerId, gridIndex) {
   var player = getPlayerRow(ss, playerId);
-  if (!player) return { success: false, error: "試藥人不存在" };
-  
+  if (!player) return { success: false, error: "玩家不存在" };
+
   var tasks = player.tasks_progress;
   gridIndex = String(gridIndex);
-  
+
   if (!tasks[gridIndex]) {
-    return { success: false, error: "無效的藥材抽屜" };
+    return { success: false, error: "無效的任務" };
   }
-  
+
   if (tasks[gridIndex].status === "completed") {
-    return { success: false, error: "此藥材挑戰已通關完成！" };
+    return { success: false, error: "此任務已通關完成！" };
   }
-  
+
   if (tasks[gridIndex].status === "active") {
     // 防呆：確保在 active_tasks 中存在此筆 active 紀錄
     try {
@@ -1629,15 +1629,15 @@ function startTask(ss, playerId, gridIndex) {
     }
     return { success: true, password: tasks[gridIndex].password, tasks_progress: tasks };
   }
-  
-  var code = "TASK-" + gridIndex + "-" + Math.floor(Math.random()*9000 + 1000);
-  
+
+  var code = "TASK-" + gridIndex + "-" + Math.floor(Math.random() * 9000 + 1000);
+
   tasks[gridIndex].status = "active";
   tasks[gridIndex].password = code;
-  
+
   player.tasks_progress = tasks;
   updatePlayerRow(ss, player.rowNum, player);
-  
+
   // 同步寫入 active_tasks 工作表
   try {
     var activeTasksSheet = getOrCreateSheet(ss, "active_tasks", ["player_id", "grid_index", "password", "status", "created_at"]);
@@ -1661,7 +1661,7 @@ function startTask(ss, playerId, gridIndex) {
   } catch (e) {
     Logger.log("Write active_tasks error: " + e.toString());
   }
-  
+
   return { success: true, password: code, tasks_progress: tasks };
 }
 
@@ -1681,71 +1681,71 @@ function getRewardCardFromSheets(ss, index) {
 // 驗證百子藥櫃密碼
 function claimTask(ss, playerId, gridIndex, password) {
   var player = getPlayerRow(ss, playerId);
-  if (!player) return { success: false, error: "試藥人不存在" };
-  
+  if (!player) return { success: false, error: "玩家不存在" };
+
   var tasks = player.tasks_progress;
   gridIndex = String(gridIndex);
-  
+
   if (!tasks[gridIndex] || tasks[gridIndex].status !== "active") {
-    return { success: false, error: "研配挑戰未開啟" };
+    return { success: false, error: "小挑戰未開啟" };
   }
-  
+
   if (tasks[gridIndex].password !== password) {
-    return { success: false, error: "通關口令錯誤，請向大掌櫃索取" };
+    return { success: false, error: "通關口令錯誤，請向工作人員索取" };
   }
-  
+
   tasks[gridIndex].status = "completed";
   tasks[gridIndex].completed = true;
-  
+
   var expBase = getSystemConfigNum(ss, "exp_task_complete", 30);
   var expDup = getSystemConfigNum(ss, "exp_task_duplicate", 50);
   var expBingoLine = getSystemConfigNum(ss, "exp_bingo_line", 150);
   var expBingoDup = getSystemConfigNum(ss, "exp_bingo_duplicate", 50);
-  
+
   var expReward = expBase;
   var rewardCardId = getRewardCardFromSheets(ss, Number(gridIndex));
-  var rewardMessage = "完成藥斗櫃 #" + (Number(gridIndex) + 1) + " 挑戰！獲得 " + expBase + " 經驗！";
-  
+  var rewardMessage = "完成小任務 #" + (Number(gridIndex) + 1) + " 挑戰！獲得 " + expBase + " 經驗！";
+
   if (rewardCardId) {
     if (player.inventory[rewardCardId]) {
       expReward += expDup;
       rewardMessage += " (重複獲得「" + getCardName(ss, rewardCardId) + "」，自動轉換為 " + expDup + " 經驗！)";
     } else {
       player.inventory[rewardCardId] = 1;
-      rewardMessage += " (額外獲得藥物「" + getCardName(ss, rewardCardId) + "」)";
+      rewardMessage += " (額外獲得卡牌「" + getCardName(ss, rewardCardId) + "」)";
     }
   }
-  
+
   player.exp = (player.exp || 0) + expReward;
-  
+
   var bingoLineCount = checkBingoLines(tasks);
   var oldBingoCount = tasks.bingo_count || 0;
-  
+
   if (bingoLineCount > oldBingoCount) {
     var lineDiff = bingoLineCount - oldBingoCount;
     var lineExp = lineDiff * expBingoLine;
     var randomCard = getRandomCardId(ss);
-    
+
     player.exp = (player.exp || 0) + lineExp;
-    
+
     if (player.inventory[randomCard]) {
       player.exp = (player.exp || 0) + expBingoDup;
-      rewardMessage += "【🎉 配藥連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗，連線獎品已轉為 " + expBingoDup + " 經驗！";
+      rewardMessage += "【🎉 任務連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗，連線獎品已轉為 " + expBingoDup + " 經驗！";
     } else {
       player.inventory[randomCard] = 1;
-      rewardMessage += "【🎉 配藥連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗與隨機珍稀藥方「" + getCardName(ss, randomCard) + "」！";
+      rewardMessage += "【🎉 任務連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗與隨機珍稀卡牌「" + getCardName(ss, randomCard) + "」！";
     }
     tasks.bingo_count = bingoLineCount;
   }
-  
+
   var newLevel = getPlayerLevelByExp(ss, player.exp);
   if (newLevel > player.level) {
     player.level = newLevel;
   }
-  
+
   player.tasks_progress = tasks;
   updatePlayerRow(ss, player.rowNum, player);
-  
+
   // 同步更新 active_tasks 工作表
   try {
     var activeTasksSheet = getOrCreateSheet(ss, "active_tasks", ["player_id", "grid_index", "password", "status", "created_at"]);
@@ -1761,7 +1761,7 @@ function claimTask(ss, playerId, gridIndex, password) {
   } catch (e) {
     Logger.log("Update active_tasks status error: " + e.toString());
   }
-  
+
   delete player.password;
   return { success: true, message: rewardMessage, player: player };
 }
@@ -1771,17 +1771,17 @@ function checkBingoLines(tasks) {
   for (var i = 0; i < 16; i++) {
     grid.push(tasks[String(i)]?.status === "completed");
   }
-  
+
   var lines = 0;
   for (var r = 0; r < 4; r++) {
-    if (grid[r*4] && grid[r*4+1] && grid[r*4+2] && grid[r*4+3]) lines++;
+    if (grid[r * 4] && grid[r * 4 + 1] && grid[r * 4 + 2] && grid[r * 4 + 3]) lines++;
   }
   for (var c = 0; c < 4; c++) {
-    if (grid[c] && grid[4+c] && grid[8+c] && grid[12+c]) lines++;
+    if (grid[c] && grid[4 + c] && grid[8 + c] && grid[12 + c]) lines++;
   }
   if (grid[0] && grid[5] && grid[10] && grid[15]) lines++;
   if (grid[3] && grid[6] && grid[9] && grid[12]) lines++;
-  
+
   return lines;
 }
 
@@ -1796,15 +1796,15 @@ function getRandomCardId(ss) {
 // 管理員生成 QR Code
 function adminGenerateQr(ss, adminId, cardId) {
   var admin = getPlayerRow(ss, adminId);
-  if (!admin) return { success: false, error: "大掌櫃不存在" };
-  
+  if (!admin) return { success: false, error: "管理員不存在" };
+
   var isGameAdmin = admin.role === "game_admin";
   var isNormalAdmin = admin.role === "admin";
-  
+
   if (!isGameAdmin && !isNormalAdmin) {
     return { success: false, error: "無管理權限" };
   }
-  
+
   if (isGameAdmin) {
     var quotaSheet = ss.getSheetByName("admin_quotas");
     var qData = quotaSheet.getDataRange().getValues();
@@ -1812,7 +1812,7 @@ function adminGenerateQr(ss, adminId, cardId) {
     var quotaVal = 0;
     var isUnlimited = false;
     var hasAnyQuotaRecord = false;
-    
+
     for (var i = 1; i < qData.length; i++) {
       if (qData[i][0] === adminId) {
         hasAnyQuotaRecord = true;
@@ -1828,12 +1828,12 @@ function adminGenerateQr(ss, adminId, cardId) {
         }
       }
     }
-    
+
     // 如果該管理員在配額表中沒有任何設定，視為無上限配額
     if (!hasAnyQuotaRecord) {
       isUnlimited = true;
     }
-    
+
     if (!isUnlimited) {
       if (quotaRow === -1 || quotaVal <= 0) {
         return { success: false, error: "您無此卡片的分配額度或配額已用盡！" };
@@ -1841,11 +1841,11 @@ function adminGenerateQr(ss, adminId, cardId) {
       quotaSheet.getRange(quotaRow, 3).setValue(quotaVal - 1);
     }
   }
-  
-  var token = "QR_" + new Date().getTime() + "_" + Math.floor(Math.random()*10000);
+
+  var token = "QR_" + new Date().getTime() + "_" + Math.floor(Math.random() * 10000);
   var qrSheet = ss.getSheetByName("qr_codes");
   qrSheet.appendRow([token, adminId, cardId, "active", "", String(new Date().getTime())]);
-  
+
   return { success: true, token: token, card_id: cardId, card_name: getCardName(ss, cardId) };
 }
 
@@ -1855,25 +1855,25 @@ function adminGetTasks(ss, adminId) {
   if (!admin || (admin.role !== "admin" && admin.role !== "game_admin")) {
     return { success: false, error: "權限不足" };
   }
-  
+
   var activeTasksSheet = ss.getSheetByName("active_tasks");
   if (!activeTasksSheet) return { success: true, player_tasks: [] };
   var actData = activeTasksSheet.getDataRange().getValues();
-  
+
   var playersSheet = ss.getSheetByName("players");
   var pData = playersSheet.getDataRange().getValues();
   var playerMap = {};
   for (var i = 1; i < pData.length; i++) {
     playerMap[pData[i][0]] = pData[i][2]; // id -> name
   }
-  
+
   var grouped = {};
   for (var j = 1; j < actData.length; j++) {
     var pId = String(actData[j][0]);
     var gIdx = Number(actData[j][1]);
     var pwd = String(actData[j][2]);
     var status = String(actData[j][3]).toLowerCase();
-    
+
     if (status === "active") {
       if (!grouped[pId]) {
         grouped[pId] = [];
@@ -1884,7 +1884,7 @@ function adminGetTasks(ss, adminId) {
       });
     }
   }
-  
+
   var playerTasks = [];
   for (var pId in grouped) {
     playerTasks.push({
@@ -1893,17 +1893,17 @@ function adminGetTasks(ss, adminId) {
       tasks: grouped[pId]
     });
   }
-  
+
   return { success: true, player_tasks: playerTasks };
 }
 
 // 獲取管理員發卡額度
 function adminGetQuotas(ss, adminId) {
   var admin = getPlayerRow(ss, adminId);
-  if (!admin) return { success: false, error: "無效使用者" };
-  
+  if (!admin) return { success: false, error: "無效工作人員" };
+
   var cardsDict = getCardsDict(ss);
-  
+
   if (admin.role === "admin") {
     var quotas = [];
     for (var cid in cardsDict) {
@@ -1915,11 +1915,11 @@ function adminGetQuotas(ss, adminId) {
     }
     return { success: true, quotas: quotas, is_unlimited: true };
   }
-  
+
   var quotaSheet = ss.getSheetByName("admin_quotas");
   var qData = quotaSheet.getDataRange().getValues();
   var list = [];
-  
+
   for (var i = 1; i < qData.length; i++) {
     if (qData[i][0] === adminId) {
       var cid = qData[i][1];
@@ -1932,7 +1932,7 @@ function adminGetQuotas(ss, adminId) {
       });
     }
   }
-  
+
   if (list.length === 0) {
     for (var cid in cardsDict) {
       list.push({
@@ -1943,7 +1943,7 @@ function adminGetQuotas(ss, adminId) {
     }
     return { success: true, quotas: list, is_unlimited: true };
   }
-  
+
   return { success: true, quotas: list, is_unlimited: false };
 }
 
@@ -1951,16 +1951,16 @@ function adminGetQuotas(ss, adminId) {
 function gameAdminToggleLogin(ss, adminId, enabled) {
   var admin = getPlayerRow(ss, adminId);
   if (!admin || admin.role !== "admin") {
-    return { success: false, error: "僅限大掌櫃操作" };
+    return { success: false, error: "僅限管理員操作" };
   }
-  
+
   setSystemConfig(ss, "game_enabled", enabled ? "true" : "false");
-  
+
   // 如果系統被關閉 (enabled === false)，強制踢出所有弟子，並清除進行中的戰鬥、邀請與任務
   if (!enabled) {
     clearActiveRecordsAndTasks(ss);
   }
-  
+
   return { success: true, game_enabled: enabled };
 }
 
@@ -1968,7 +1968,7 @@ function gameAdminToggleLogin(ss, adminId, enabled) {
 function clearActiveRecordsAndTasks(ss) {
   // 1. 強制所有非管理員玩家登出 (寫入新的強踢時間戳記)
   setSystemConfig(ss, "force_logout_time", String(new Date().getTime()));
-  
+
   // 2. 強制終止並清除所有戰鬥數據
   var battlesSheet = ss.getSheetByName("battles");
   if (battlesSheet) {
@@ -1977,7 +1977,7 @@ function clearActiveRecordsAndTasks(ss) {
       battlesSheet.deleteRows(2, lastRow - 1);
     }
   }
-  
+
   // 3. 清空邀請表
   var invSheet = ss.getSheetByName("invitations");
   if (invSheet) {
@@ -1986,7 +1986,7 @@ function clearActiveRecordsAndTasks(ss) {
       invSheet.deleteRows(2, invLastRow - 1);
     }
   }
-  
+
   // 4. 清空進行中任務表
   var activeTasksSheet = ss.getSheetByName("active_tasks");
   if (activeTasksSheet) {
@@ -1995,7 +1995,7 @@ function clearActiveRecordsAndTasks(ss) {
       activeTasksSheet.deleteRows(2, actLastRow - 1);
     }
   }
-  
+
   // 5. 清除所有玩家進行中的任務進度 (將 tasks_progress 中狀態為 "active" 的任務改為 "available")
   var playersSheet = ss.getSheetByName("players");
   if (playersSheet) {
@@ -2018,7 +2018,7 @@ function clearActiveRecordsAndTasks(ss) {
             playersSheet.getRange(i + 1, 15).setValue(JSON.stringify(progress));
           }
         } catch (e) {
-          Logger.log("Reset player tasks_progress error at row " + (i+1) + ": " + e.toString());
+          Logger.log("Reset player tasks_progress error at row " + (i + 1) + ": " + e.toString());
         }
       }
     }
@@ -2030,12 +2030,12 @@ function clearActiveRecordsAndTasks(ss) {
 function gameAdminUpdatePlayer(ss, adminId, targetPlayerId, fields) {
   var admin = getPlayerRow(ss, adminId);
   if (!admin || admin.role !== "admin") {
-    return { success: false, error: "僅限大掌櫃操作" };
+    return { success: false, error: "僅限管理員操作" };
   }
-  
+
   var target = getPlayerRow(ss, targetPlayerId);
-  if (!target) return { success: false, error: "找不到目標試藥人" };
-  
+  if (!target) return { success: false, error: "找不到目標玩家" };
+
   // 支援全能覆寫
   if (fields.targetPlayerObj) {
     var updatedObj = fields.targetPlayerObj;
@@ -2043,18 +2043,18 @@ function gameAdminUpdatePlayer(ss, adminId, targetPlayerId, fields) {
     updatePlayerRow(ss, target.rowNum, updatedObj);
     return { success: true, player: updatedObj };
   }
-  
+
   if (fields.name !== undefined) target.name = fields.name;
   if (fields.password !== undefined) target.password = fields.password;
   if (fields.role !== undefined) target.role = fields.role;
   if (fields.level !== undefined) target.level = Number(fields.level);
   if (fields.exp !== undefined) target.exp = Number(fields.exp);
-  
+
   if (fields.give_card_id) {
     var cid = fields.give_card_id;
     target.inventory[cid] = (target.inventory[cid] || 0) + 1;
   }
-  
+
   if (fields.quota_card_id && fields.quota_val !== undefined) {
     var quotaSheet = ss.getSheetByName("admin_quotas");
     var qData = quotaSheet.getDataRange().getValues();
@@ -2071,7 +2071,7 @@ function gameAdminUpdatePlayer(ss, adminId, targetPlayerId, fields) {
       quotaSheet.appendRow([targetPlayerId, fields.quota_card_id, Number(fields.quota_val)]);
     }
   }
-  
+
   updatePlayerRow(ss, target.rowNum, target);
   return { success: true, player: target };
 }
@@ -2086,24 +2086,24 @@ function getCardName(ss, id) {
 function gameAdminResetSystem(ss, adminId) {
   var admin = getPlayerRow(ss, adminId);
   if (!admin || admin.role !== "admin") {
-    return { success: false, error: "僅限大掌櫃操作" };
+    return { success: false, error: "僅限管理員操作" };
   }
-  
+
   clearActiveRecordsAndTasks(ss);
-  
-  return { success: true, message: "💥 成功！大掌櫃總開關已被啟動，所有在線普通弟子已強制退房，進行中對決與任務已清空。" };
+
+  return { success: true, message: "💥 成功！管理員總開關已被啟動，所有在線玩家已強制退房，進行中對決與任務已清空。" };
 }
 
 // 大掌櫃設定六項 XP 配置
 function gameAdminSetSystemConfigs(ss, adminId, configs) {
   var admin = getPlayerRow(ss, adminId);
   if (!admin || admin.role !== "admin") {
-    return { success: false, error: "僅限大掌櫃操作" };
+    return { success: false, error: "僅限管理員操作" };
   }
-  
+
   for (var key in configs) {
     setSystemConfig(ss, key, String(configs[key]));
   }
-  
+
   return { success: true, message: "⚙️ 經驗值與系統配置已更新成功！" };
 }

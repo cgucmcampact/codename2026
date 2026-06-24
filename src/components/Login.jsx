@@ -32,21 +32,21 @@ export default function Login({ onLoginSuccess }) {
 
   return (
     <div className="tcm-login-wrapper">
-      
+
       {/* 1. 上方盒子：標題面板 */}
       <div className="glass-panel glass-panel-neon tcm-login-title-panel">
         {/* 背景裝飾微光 */}
         <div className="absolute -top-12 -left-12 w-28 h-28 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
         <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none"></div>
-        
+
         <div className="tcm-login-title-icon">
           <Shield size={28} />
         </div>
         <h2 className="tcm-login-title-text">
-          百草醫館
+          靈獸培育空間
         </h2>
         <p className="tcm-login-subtitle-text">
-          Apothecary Training Ground
+          Spirit Beast Training Ground
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export default function Login({ onLoginSuccess }) {
             {/* 帳號欄位 */}
             <div className="tcm-login-field">
               <label htmlFor="input-username" className="tcm-login-label">
-                弟子 / 掌櫃 帳號
+                帳號
               </label>
               <div className="tcm-login-input-wrapper">
                 <span className="tcm-login-input-icon">
@@ -79,7 +79,7 @@ export default function Login({ onLoginSuccess }) {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="例如: player1, player2"
+                  placeholder="例如: 超甲組"
                   className="tcm-login-input"
                 />
               </div>
@@ -88,7 +88,7 @@ export default function Login({ onLoginSuccess }) {
             {/* 密碼欄位 */}
             <div className="tcm-login-field">
               <label htmlFor="input-password" className="tcm-login-label">
-                通關口令 (密碼)
+                密碼
               </label>
               <div className="tcm-login-input-wrapper">
                 <span className="tcm-login-input-icon">
@@ -100,7 +100,7 @@ export default function Login({ onLoginSuccess }) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="輸入通關口令"
+                  placeholder="請輸入密碼"
                   className="tcm-login-input"
                 />
                 <button
@@ -126,7 +126,7 @@ export default function Login({ onLoginSuccess }) {
               ) : (
                 <>
                   <Sparkles size={14} />
-                  跨入百草醫館
+                  跨入靈獸培育空間
                 </>
               )}
             </button>

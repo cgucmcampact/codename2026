@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CARDS, RARITY_COLORS, detectRewardCards, convertGoogleDriveUrl } from '../services/cardData';
 import { ApiService } from '../services/api';
-import { 
-  ShieldAlert, Plus, X, QrCode, Camera, CameraOff, 
-  ChevronLeft, ChevronRight, CheckCircle2, Info, Sparkles, Leaf 
+import {
+  ShieldAlert, Plus, X, QrCode, Camera, CameraOff,
+  ChevronLeft, ChevronRight, CheckCircle2, Info, Sparkles, Leaf
 } from 'lucide-react';
 import gorillaBeast from '../assets/gorilla_beast.png';
 
@@ -86,7 +86,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
         video: { facingMode: 'environment' }
       });
       streamRef.current = stream;
-      
+
       // 輪詢等待 videoRef.current 掛載成功，保證相機畫面能正確顯示
       for (let i = 0; i < 10; i++) {
         if (videoRef.current) break;
@@ -132,7 +132,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
         canvas.height = videoRef.current.videoHeight;
         canvas.width = videoRef.current.videoWidth;
         context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        
+
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         if (window.jsQR) {
           const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
@@ -149,7 +149,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
   async function handleDecodedToken(text) {
     stopCamera();
     setScanError('');
-    
+
     let token = text;
     try {
       if (text.includes('token=')) {
@@ -215,7 +215,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
         onPlayerUpdate(res.player);
       }
     } catch (err) {
-      setError(err.message || '卸下加護失敗');
+      setError(err.message || '卸下裝備失敗');
     } finally {
       setLoading(false);
     }
@@ -235,7 +235,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
         setActiveSlot(null);
       }
     } catch (err) {
-      setError(err.message || '裝備加護失敗');
+      setError(err.message || '裝備配戴失敗');
     } finally {
       setLoading(false);
     }
@@ -344,10 +344,10 @@ export default function EquipTab({ player, onPlayerUpdate }) {
       <div className="tcm-beast-wrapper relative">
         {/* 靈獸大猩猩剪影 (直接呈現原圖，不進行去背) */}
         <div className="tcm-beast-silhouette w-full h-full flex items-center justify-center pointer-events-none z-1">
-          <img 
-            src={gorillaBeast} 
+          <img
+            src={gorillaBeast}
             className="w-[84%] h-[84%] object-contain"
-            alt="靈獸" 
+            alt="靈獸"
           />
         </div>
 
@@ -375,10 +375,10 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                       <span className="tcm-beast-slot-fallback absolute">{card.name.slice(0, 2)}</span>
                     )}
                     {card.image_url && (
-                      <img 
-                        src={convertGoogleDriveUrl(card.image_url)} 
-                        alt={card.name} 
-                        className="tcm-beast-slot-image absolute inset-0 w-full h-full object-cover" 
+                      <img
+                        src={convertGoogleDriveUrl(card.image_url)}
+                        alt={card.name}
+                        className="tcm-beast-slot-image absolute inset-0 w-full h-full object-cover"
                         onError={(e) => {
                           e.target.style.display = 'none';
                         }}
@@ -392,7 +392,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                       handleUnequip(slot);
                     }}
                     className="tcm-beast-slot-remove"
-                    title="卸下加護"
+                    title="卸下裝備"
                   >
                     <X size={10} />
                   </button>
@@ -402,7 +402,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                   id={`btn-equip-trigger-${slot}-${idx}`}
                   onClick={() => handleSlotClick(slot)}
                   className="w-full h-full rounded-full flex items-center justify-center text-amber-500 bg-transparent border-none cursor-pointer p-0"
-                  title={`敷藥/行針: ${label}`}
+                  title={`配戴裝備: ${label}`}
                 >
                   <Plus size={14} />
                 </button>
@@ -424,9 +424,8 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                 setSliderIndex(0);
                 setActiveSlot(null);
               }}
-              className={`tcm-filter-tab-btn ${
-                selectedFilterTab === tabKey ? 'active-tab' : 'inactive-tab'
-              }`}
+              className={`tcm-filter-tab-btn ${selectedFilterTab === tabKey ? 'active-tab' : 'inactive-tab'
+                }`}
             >
               {TAB_LABELS[tabKey]}
             </button>
@@ -442,9 +441,8 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                 setSliderIndex(0);
                 setActiveSlot(null);
               }}
-              className={`tcm-filter-tab-btn ${
-                selectedFilterTab === tabKey ? 'active-tab' : 'inactive-tab'
-              }`}
+              className={`tcm-filter-tab-btn ${selectedFilterTab === tabKey ? 'active-tab' : 'inactive-tab'
+                }`}
             >
               {TAB_LABELS[tabKey]}
             </button>
@@ -458,26 +456,26 @@ export default function EquipTab({ player, onPlayerUpdate }) {
           <div className="w-full flex flex-col gap-2">
             <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-between items-center px-1">
               <span>
-                {activeSlot 
-                  ? `可選配加護 (對應: ${SLOT_RENDER_CONFIG.find(c => c.slot === activeSlot)?.label})`
-                  : '百草囊裝備清單'
+                {activeSlot
+                  ? `可選配裝備 (對應: ${SLOT_RENDER_CONFIG.find(c => c.slot === activeSlot)?.label})`
+                  : '裝備清單'
                 }
               </span>
               <span className="text-[9px] text-gray-500 font-mono">
-                此分類共 0 件
+                共 0 件
               </span>
             </h3>
             <div className="py-10 text-center text-gray-600 text-xs font-serif border border-dashed border-amber-955/30 rounded-xl bg-black/10">
-              百草囊空空，尚無此類型的加護藥貼
+              尚無此類型的裝備
             </div>
           </div>
         ) : (
           <div className="w-full flex flex-col items-center">
             <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-between items-center px-1" style={{ marginBottom: '12px', width: '100%' }}>
               <span>
-                {activeSlot 
-                  ? `可選配加護 (對應: ${SLOT_RENDER_CONFIG.find(c => c.slot === activeSlot)?.label})`
-                  : '百草囊裝備清單'
+                {activeSlot
+                  ? `可選配裝備 (對應: ${SLOT_RENDER_CONFIG.find(c => c.slot === activeSlot)?.label})`
+                  : '裝備清單'
                 }
               </span>
               <span className="text-[9px] text-gray-500 font-mono">
@@ -523,27 +521,24 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                     {/* 裝備卡主體 - 圓形 + 下方重疊標籤 (符合附圖右側) */}
                     <div className="relative my-3 flex flex-col items-center select-none pb-2">
                       {/* 圓形裝備圖片 */}
-                      <div 
+                      <div
                         className={`rounded-full overflow-hidden border-2 ${cardRarity.border} ${cardRarity.shadow} bg-black/40 flex items-center justify-center shrink-0`}
                         style={{ width: '96px', height: '96px', position: 'relative' }}
                       >
-                        {!currentCard.image_url && (
-                          <span className="text-[28px] opacity-10 font-black font-serif text-amber-500 select-none">
-                            {currentCard.name.slice(0, 1)}
-                          </span>
-                        )}
-                        {currentCard.image_url && (
-                          <img 
-                            src={convertGoogleDriveUrl(currentCard.image_url)} 
-                            alt={currentCard.name} 
+                        {currentCard.image_url ? (
+                          <img
+                            src={convertGoogleDriveUrl(currentCard.image_url)}
+                            alt={currentCard.name}
                             className="absolute inset-0 w-full h-full object-cover"
                             onError={(e) => {
                               e.target.style.display = 'none';
                             }}
                           />
+                        ) : (
+                          <Leaf size={28} className="text-amber-600/20 animate-pulse" />
                         )}
                       </div>
-                      
+
                       {/* 下方稍微重疊的矩形名稱標籤 */}
                       <div className="absolute -bottom-1.5 px-3 py-0.5 bg-amber-955 border border-amber-500/40 text-amber-400 font-bold text-[10px] rounded shadow-md whitespace-nowrap text-center z-10">
                         <span className={`font-serif tracking-wider ${cardRarity.text}`}>
@@ -633,10 +628,10 @@ export default function EquipTab({ player, onPlayerUpdate }) {
 
             <div className="text-center space-y-1">
               <h3 className="text-base font-bold text-gray-200 font-serif">
-                百草藥貼 / 香箋兌換
+                卡片兌換
               </h3>
               <p className="text-[9px] text-amber-700 uppercase tracking-widest font-mono font-bold">
-                Scan Aether Token or Insert Stamp Code
+                Scan QR Code or Type in Token
               </p>
             </div>
 
@@ -682,14 +677,14 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                     required
                     value={manualToken}
                     onChange={(e) => setManualToken(e.target.value)}
-                    placeholder="例如: QR_1718000000000_123"
+                    placeholder="例如: QR_0000000000000_000"
                     className="flex-1 px-3 py-2 bg-black/60 border border-amber-950 rounded text-xs text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500 text-center"
                   />
                   <button
                     type="submit"
                     className="btn-neon px-4 py-2 text-xs font-bold whitespace-nowrap"
                   >
-                    兌藥
+                    兌換
                   </button>
                 </div>
               </div>
@@ -714,15 +709,15 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                   <img src={convertGoogleDriveUrl(activeCardDetail.image_url)} alt={activeCardDetail.name} />
                 </div>
               )}
-              
+
               <div className="tcm-card-detail-desc">
                 {activeCardDetail.description}
               </div>
-              
+
               <div className="tcm-card-detail-grid">
                 <div className="tcm-card-detail-item">
                   <span className="tcm-card-detail-label">類型</span>
-                  <span className="tcm-card-detail-value">{activeCardDetail.type === 'equipment' ? '裝備加護' : '方劑技能'}</span>
+                  <span className="tcm-card-detail-value">{activeCardDetail.type === 'equipment' ? '裝備配戴' : '技能'}</span>
                 </div>
                 <div className="tcm-card-detail-item">
                   <span className="tcm-card-detail-label">稀有度</span>
@@ -730,18 +725,17 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                 </div>
                 {activeCardDetail.element && (
                   <div className="tcm-card-detail-item">
-                    <span className="tcm-card-detail-label">五行</span>
-                    <span className={`tcm-card-detail-value ${
-                      activeCardDetail.element === '火' ? 'text-orange-400' :
+                    <span className="tcm-card-detail-label">屬性</span>
+                    <span className={`tcm-card-detail-value ${activeCardDetail.element === '火' ? 'text-orange-400' :
                       activeCardDetail.element === '水' ? 'text-blue-400' :
-                      activeCardDetail.element === '木' ? 'text-emerald-400' :
-                      activeCardDetail.element === '金' ? 'text-yellow-300' :
-                      activeCardDetail.element === '土' ? 'text-amber-500' : 'text-gray-400'
-                    }`}>{activeCardDetail.element}</span>
+                        activeCardDetail.element === '木' ? 'text-emerald-400' :
+                          activeCardDetail.element === '金' ? 'text-yellow-300' :
+                            activeCardDetail.element === '土' ? 'text-amber-500' : 'text-gray-400'
+                      }`}>{activeCardDetail.element}</span>
                   </div>
                 )}
                 <div className="tcm-card-detail-item">
-                  <span className="tcm-card-detail-label">目標</span>
+                  <span className="tcm-card-detail-label">對象</span>
                   <span className="tcm-card-detail-value">{activeCardDetail.target === 'self' ? '自身' : activeCardDetail.target === 'opponent' ? '對手' : '調和'}</span>
                 </div>
                 {(activeCardDetail.atk_mod !== 0) && (
@@ -765,17 +759,17 @@ export default function EquipTab({ player, onPlayerUpdate }) {
           document.body
         );
       })()}
-      
+
       {/* 獲得獎勵浮動彈窗 */}
       {rewardMessage && createPortal(
         <div className="tcm-modal-overlay" style={{ zIndex: 1000 }}>
           <div className="glass-panel tcm-claim-result-card p-4 text-center border-2 border-amber-500/40 relative animate-scaleUp" onClick={e => e.stopPropagation()}>
             <div className="text-center space-y-1">
               <h3 className="text-sm font-bold text-gray-200 font-serif">
-                🎉 醫道修煉機緣
+                🎉 獲得獎勵卡片
               </h3>
               <p className="text-[8px] text-amber-700 uppercase tracking-widest font-mono font-bold">
-                New Fortune Acquired
+                Acquired Reward Cards
               </p>
               <div className="py-1.5 px-2 bg-black/40 border border-amber-955/40 rounded-lg max-h-[60px] overflow-y-auto">
                 <p className="text-[10px] text-amber-100 font-serif leading-relaxed">
@@ -793,15 +787,15 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                   {rewardCards.map(card => {
                     const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
                     return (
-                      <div 
+                      <div
                         key={card.id}
                         className={`game-card border ${cardRarity.border} ${cardRarity.shadow} relative overflow-hidden bg-black/55 rounded-lg mx-auto flex-shrink-0`}
                         style={{ width: '180px', height: '80px', minHeight: 'auto', padding: '0' }}
                       >
                         {card.image_url ? (
-                          <img 
-                            src={convertGoogleDriveUrl(card.image_url)} 
-                            alt={card.name} 
+                          <img
+                            src={convertGoogleDriveUrl(card.image_url)}
+                            alt={card.name}
                             className="absolute inset-0 w-full h-full object-cover flex-shrink-0"
                             style={{ objectFit: 'cover' }}
                           />
@@ -810,7 +804,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                             <Leaf size={24} className="text-amber-600/30 animate-pulse" />
                           </div>
                         )}
-                        <div 
+                        <div
                           className="absolute bottom-0 left-0 right-0 bg-black/75 py-1 px-1.5 flex flex-col items-center justify-center text-center border-t border-amber-500/10 leading-none z-10"
                           style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
                         >

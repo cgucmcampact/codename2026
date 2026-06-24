@@ -10,8 +10,6 @@ export default function PlayerHUD({ player }) {
 
   const getRoleBadge = (role) => {
     switch (role) {
-      case 'game_admin': return '醫館大掌櫃';
-      case 'admin': return '分藥總管';
       default: return null;
     }
   };
@@ -32,7 +30,7 @@ export default function PlayerHUD({ player }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'stretch', textAlign: 'left' }}>
           <h2 className="tcm-hud-name" style={{ margin: 0, fontSize: '1.25rem', fontWeight: '900', color: 'var(--text-paper)', fontFamily: "'Noto Serif TC', serif" }}>{player.name}</h2>
           <p className="tcm-hud-id" style={{ margin: 0, fontSize: '10px', color: 'var(--text-muted)', fontFamily: "'Outfit', sans-serif" }}>ID: {player.id}</p>
-          
+
           {getRoleBadge(player.role) && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px', marginBottom: '2px' }}>
               <span className="tcm-hud-role-badge">
@@ -40,7 +38,7 @@ export default function PlayerHUD({ player }) {
               </span>
             </div>
           )}
-          
+
           {/* 經驗值條 */}
           <div className="tcm-hud-exp-container">
             <div className="tcm-hud-exp-text">
@@ -48,7 +46,7 @@ export default function PlayerHUD({ player }) {
               <span>{stats.exp % 100} / {expNeeded}</span>
             </div>
             <div className="tcm-hud-exp-track">
-              <div 
+              <div
                 id="hud-exp-bar"
                 className="tcm-hud-exp-fill"
                 style={{ width: `${expPct}%` }}

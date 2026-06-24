@@ -53,7 +53,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
         video: { facingMode: 'environment' }
       });
       streamRef.current = stream;
-      
+
       // 輪詢等待 videoRef.current 掛載成功，保證相機畫面能正確顯示
       for (let i = 0; i < 10; i++) {
         if (videoRef.current) break;
@@ -99,7 +99,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
         canvas.height = videoRef.current.videoHeight;
         canvas.width = videoRef.current.videoWidth;
         context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        
+
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         if (window.jsQR) {
           const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
@@ -116,7 +116,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
   async function handleDecodedToken(text) {
     stopCamera();
     setScanError('');
-    
+
     let token = text;
     try {
       if (text.includes('token=')) {
@@ -191,18 +191,18 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
   const handleAddToSlot = (slotIdx, cardId) => {
     setError('');
     setSuccess('');
-    
+
     const currentCounts = getDeckCardCounts();
     const currentQtyInDeck = currentCounts[cardId] || 0;
     const inventoryQty = player.inventory[cardId] || 0;
 
     if (currentQtyInDeck >= 1) {
-      setError('牌組中同一方劑只能攜帶一張！');
+      setError('牌組中同一技能只能攜帶一張！');
       return;
     }
 
     if (currentQtyInDeck >= inventoryQty) {
-      setError('百草囊中無多餘的此方劑可加入出戰！');
+      setError('已無此技能可加入出戰！');
       return;
     }
 
@@ -216,13 +216,13 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
   const handleSaveDeck = async () => {
     setError('');
     setSuccess('');
-    
+
     // 驗證不重複
     const uniqueCards = {};
     for (let cid of deck) {
       if (cid === "") continue;
       if (uniqueCards[cid]) {
-        setError('牌組中同一方劑只能攜帶一張！');
+        setError('牌組中同一技能只能攜帶一張！');
         return;
       }
       uniqueCards[cid] = true;
@@ -232,11 +232,11 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
     try {
       const res = await ApiService.updateDeck(player.id, deck); // 傳送完整的 deck，包含空字串
       if (res.success) {
-        setSuccess('出戰方劑儲存成功！已作為你切磋鬥法時的使用藥方。');
+        setSuccess('出戰技能儲存成功！');
         onPlayerUpdate(res.player);
       }
     } catch (err) {
-      setError(err.message || '儲存方劑失敗');
+      setError(err.message || '儲存技能失敗');
     } finally {
       setLoading(false);
     }
@@ -283,18 +283,27 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
         }}
         className={`tcm-skill-slot ${isActive ? 'active' : ''} ${!card ? 'empty-slot' : ''} ${card ? cardRarity.border : ''}`}
       >
-        <span className="tcm-skill-slot-index">{slotIdx + 1}</span>
+        <span className="tcm-skill-slot-index z-10">{slotIdx + 1}</span>
         {card ? (
           <>
-            <span className={`tcm-skill-slot-name ${cardRarity.text}`}>{card.name}</span>
+            {card.image_url ? (
+              <img
+                src={convertGoogleDriveUrl(card.image_url)}
+                alt={card.name}
+                className="absolute inset-0 w-full h-full object-cover flex-shrink-0"
+                style={{ borderRadius: '7px', zIndex: 0 }}
+              />
+            ) : (
+              <span className={`tcm-skill-slot-name ${cardRarity.text}`}>{card.name}</span>
+            )}
             <button
               id={`btn-remove-skill-slot-${slotIdx}`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleRemoveFromSlot(slotIdx);
               }}
-              className="tcm-skill-slot-remove"
-              title="移出方劑"
+              className="tcm-skill-slot-remove z-10"
+              title="移出技能"
             >
               <Trash2 size={8} />
             </button>
@@ -314,9 +323,9 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
           <div>
             <h2 className="text-xl font-bold text-gray-100 flex items-center gap-2 font-serif">
               <Sparkles size={20} className="text-amber-500" />
-              出戰方劑調配設定
+              出戰技能設定
             </h2>
-            <p className="text-xs text-gray-400 mt-1">選定最多 10 帖湯藥或針刺手法帶入鬥法藥室（可留空，非空方劑限帶一張）。</p>
+            <p className="text-xs text-gray-400 mt-1">選定最多 10 個技能。</p>
           </div>
 
           <div className="flex items-center gap-3 justify-between sm:justify-end">
@@ -326,7 +335,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
               return (
                 <>
                   <div className="text-sm font-serif">
-                    已配帖數:{' '}
+                    已選技能數:{' '}
                     <span className={`font-mono font-bold ${hasConfiguredCards ? 'text-emerald-400' : 'text-yellow-400'}`}>
                       {deck.filter(id => id !== "").length} / 10
                     </span>
@@ -337,7 +346,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                     onClick={handleSaveDeck}
                     className={`btn-neon py-2 px-4 text-xs font-bold ${isDeckUnchanged ? 'btn-disabled' : ''}`}
                   >
-                    {loading ? '正在煎藥中...' : '儲存出戰方劑'}
+                    {loading ? '正在備戰中...' : '儲存出戰技能'}
                   </button>
                 </>
               );
@@ -376,7 +385,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
       {/* 1. 上方：10 個技能槽 (4-2-4 環狀 HTML <table>) */}
       <h3 className="w-full max-w-[340px] text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 font-serif align-left">
         <Award size={15} className="text-amber-500" />
-        已配出戰方劑 (10 帖)
+        已配出戰技能
       </h3>
 
       <table className="tcm-skills-table">
@@ -404,17 +413,17 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
       {/* 2. 下方：Slider/Carousel 庫存方劑輪播 */}
       <div className="w-full max-w-[340px] mx-auto" style={{ marginTop: '8px' }}>
         <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-between items-center px-1" style={{ marginBottom: '12px' }}>
-          <span>百草囊方劑清單</span>
+          <span>技能清單</span>
           {inventorySkills.length > 0 && (
             <span className="text-[9px] text-gray-500 font-mono">
-              擁有 {inventorySkills.length} 帖 ({sliderIndex + 1}/{inventorySkills.length})
+              擁有 {inventorySkills.length} 個技能 ({sliderIndex + 1}/{inventorySkills.length})
             </span>
           )}
         </h3>
 
         {inventorySkills.length === 0 ? (
           <div className="py-10 text-center text-gray-600 text-xs font-serif border border-dashed border-amber-955/30 rounded-xl bg-black/10">
-            百草囊空空，尚未獲得任何可用方劑
+            尚未獲得任何可用技能
           </div>
         ) : (
           <div className="w-full flex flex-col">
@@ -454,27 +463,26 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                     </div>
 
                     {/* 技能卡主體 - 直立長方形 (符合附圖左側) */}
-                    <div 
+                    <div
                       className={`rounded-lg overflow-hidden border-2 ${cardRarity.border} ${cardRarity.shadow} bg-black/40 shrink-0 my-2 flex flex-col justify-between`}
                       style={{ width: '110px', height: '157px', position: 'relative' }}
                     >
-                      {/* 技能圖片鋪滿與 Fallback 大字 */}
+                      {/* 技能圖片鋪滿與 Fallback Leaf 圖示 */}
                       <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-                        <span className="text-[28px] opacity-10 font-black font-serif text-amber-500 select-none">
-                          {currentCard.name.slice(0, 1)}
-                        </span>
-                        {currentCard.image_url && (
-                          <img 
-                            src={currentCard.image_url} 
-                            alt={currentCard.name} 
+                        {currentCard.image_url ? (
+                          <img
+                            src={convertGoogleDriveUrl(currentCard.image_url)}
+                            alt={currentCard.name}
                             className="absolute inset-0 w-full h-full object-cover"
                             onError={(e) => {
                               e.target.style.display = 'none';
                             }}
                           />
+                        ) : (
+                          <Leaf size={28} className="text-amber-600/20 animate-pulse" />
                         )}
                       </div>
-                      
+
                       {/* 底部卡片名稱區 (重疊在內部底部) */}
                       <div className="absolute bottom-0 left-0 right-0 py-1.5 text-center bg-black/75 border-t border-amber-500/20 backdrop-blur-[1px] z-10">
                         <span className={`text-[10px] font-black font-serif tracking-wider ${cardRarity.text}`}>
@@ -581,10 +589,10 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
 
             <div className="text-center space-y-1">
               <h3 className="text-base font-bold text-gray-200 font-serif">
-                百草藥貼 / 香箋兌換
+                卡片兌換
               </h3>
               <p className="text-[9px] text-amber-700 uppercase tracking-widest font-mono font-bold">
-                Scan Aether Token or Insert Stamp Code
+                Scan QR code or Type in Token
               </p>
             </div>
 
@@ -628,14 +636,14 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                     required
                     value={manualToken}
                     onChange={(e) => setManualToken(e.target.value)}
-                    placeholder="例如: QR_1718000000000_123"
+                    placeholder="例如: QR_0000000000000_000"
                     className="flex-1 px-3 py-2 bg-black/60 border border-amber-950 rounded text-xs text-gray-100 placeholder-gray-600 focus:outline-none focus:border-amber-500"
                   />
                   <button
                     type="submit"
                     className="btn-neon px-4 py-2 text-xs font-bold"
                   >
-                    兌藥
+                    兌換
                   </button>
                 </div>
               </div>
@@ -660,11 +668,11 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                   <img src={activeCardDetail.image_url} alt={activeCardDetail.name} />
                 </div>
               )}
-              
+
               <div className="tcm-card-detail-desc">
                 {activeCardDetail.description}
               </div>
-              
+
               <div className="tcm-card-detail-grid">
                 <div className="tcm-card-detail-item">
                   <span className="tcm-card-detail-label">類型</span>
@@ -676,18 +684,17 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                 </div>
                 {activeCardDetail.element && (
                   <div className="tcm-card-detail-item">
-                    <span className="tcm-card-detail-label">五行</span>
-                    <span className={`tcm-card-detail-value ${
-                      activeCardDetail.element === '火' ? 'text-orange-400' :
+                    <span className="tcm-card-detail-label">屬性</span>
+                    <span className={`tcm-card-detail-value ${activeCardDetail.element === '火' ? 'text-orange-400' :
                       activeCardDetail.element === '水' ? 'text-blue-400' :
-                      activeCardDetail.element === '木' ? 'text-emerald-400' :
-                      activeCardDetail.element === '金' ? 'text-yellow-300' :
-                      activeCardDetail.element === '土' ? 'text-amber-500' : 'text-gray-400'
-                    }`}>{activeCardDetail.element}</span>
+                        activeCardDetail.element === '木' ? 'text-emerald-400' :
+                          activeCardDetail.element === '金' ? 'text-yellow-300' :
+                            activeCardDetail.element === '土' ? 'text-amber-500' : 'text-gray-400'
+                      }`}>{activeCardDetail.element}</span>
                   </div>
                 )}
                 <div className="tcm-card-detail-item">
-                  <span className="tcm-card-detail-label">目標</span>
+                  <span className="tcm-card-detail-label">作用</span>
                   <span className="tcm-card-detail-value">{activeCardDetail.target === 'self' ? '自身' : activeCardDetail.target === 'opponent' ? '對手' : '調和'}</span>
                 </div>
                 {(activeCardDetail.atk_mod !== 0) && (
@@ -714,7 +721,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                   if (activeCardDetail.ops_any_atk) conds.push(`同道任一內功變動 ${activeCardDetail.ops_any_atk}`);
                   if (activeCardDetail.ops_any_def) conds.push(`同道任一衛氣變動 ${activeCardDetail.ops_any_def}`);
                   if (activeCardDetail.ops_any_ele) conds.push(`同道任一五行屬性 ${activeCardDetail.ops_any_ele}`);
-                  
+
                   if (conds.length === 0) return (
                     <div className="tcm-card-detail-item tcm-card-detail-conditions">
                       <span className="tcm-card-detail-label">觸發條件</span>
@@ -758,17 +765,17 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
           document.body
         );
       })()}
-      
+
       {/* 獲得獎勵浮動彈窗 */}
       {rewardMessage && createPortal(
         <div className="tcm-modal-overlay" style={{ zIndex: 1000 }}>
           <div className="glass-panel tcm-claim-result-card p-4 text-center border-2 border-amber-500/40 relative animate-scaleUp" onClick={e => e.stopPropagation()}>
             <div className="text-center space-y-1">
               <h3 className="text-sm font-bold text-gray-200 font-serif">
-                🎉 醫道修煉機緣
+                🎉 獲得獎勵卡片
               </h3>
               <p className="text-[8px] text-amber-700 uppercase tracking-widest font-mono font-bold">
-                New Fortune Acquired
+                Bonus Card Acquired
               </p>
               <div className="py-1.5 px-2 bg-black/40 border border-amber-955/40 rounded-lg max-h-[60px] overflow-y-auto">
                 <p className="text-[10px] text-amber-100 font-serif leading-relaxed">
@@ -786,15 +793,15 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                   {rewardCards.map(card => {
                     const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
                     return (
-                      <div 
+                      <div
                         key={card.id}
                         className={`game-card border ${cardRarity.border} ${cardRarity.shadow} relative overflow-hidden bg-black/55 rounded-lg mx-auto flex-shrink-0`}
                         style={{ width: '180px', height: '80px', minHeight: 'auto', padding: '0' }}
                       >
                         {card.image_url ? (
-                          <img 
-                            src={convertGoogleDriveUrl(card.image_url)} 
-                            alt={card.name} 
+                          <img
+                            src={convertGoogleDriveUrl(card.image_url)}
+                            alt={card.name}
                             className="absolute inset-0 w-full h-full object-cover flex-shrink-0"
                             style={{ objectFit: 'cover' }}
                           />
@@ -803,7 +810,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                             <Leaf size={24} className="text-amber-600/30 animate-pulse" />
                           </div>
                         )}
-                        <div 
+                        <div
                           className="absolute bottom-0 left-0 right-0 bg-black/75 py-1 px-1.5 flex flex-col items-center justify-center text-center border-t border-amber-500/10 leading-none z-10"
                           style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
                         >
