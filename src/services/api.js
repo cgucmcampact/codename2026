@@ -305,9 +305,10 @@ const LocalMockService = {
         throw new Error('牌組中同一卡牌只能攜帶一張！');
       }
       uniqueCards[cid] = true;
-      if (!player.inventory[cid] || player.inventory[cid] < 1) {
-        throw new Error('背包中無此卡牌，無法配置！');
-      }
+      // 取消本地 Mock 的背包庫存限制
+      // if (!player.inventory[cid] || player.inventory[cid] < 1) {
+      //   throw new Error('背包中無此卡牌，無法配置！');
+      //   }
     }
     
     player.deck = deck;
@@ -610,7 +611,9 @@ const LocalMockService = {
     const qrList = JSON.parse(localStorage.getItem('sa_qr_codes') || '[]');
     const qr = qrList.find(q => q.token === token);
     if (!qr) throw new Error('無效的領取憑證 (QR Token)');
-    if (qr.status !== 'active') throw new Error('此 QR Code 已被兌換或失效');
+    if (qr.status !== 'active') {
+      return { success: false, error: '此 QR Code 已被兌換或失效', card_id: qr.card_id };
+    }
 
     const player = getLocalPlayer(playerId);
     if (!player) throw new Error('玩家不存在');
@@ -622,7 +625,7 @@ const LocalMockService = {
     const expQrDuplicate = getLocalConfigNum('exp_qr_duplicate', 80);
     if (player.inventory[cardId]) {
       expGained = expQrDuplicate;
-      message = `領取成功！已擁有此卡牌，自動轉換為 ${expGained} 點經驗值！`;
+      message = `領取成功！已擁有此卡牌 [${CARDS[cardId]?.name || cardId}]，自動轉換為 ${expGained} 點經驗值！`;
       addLocalExp(player, expGained);
     } else {
       player.inventory[cardId] = 1;
@@ -636,7 +639,7 @@ const LocalMockService = {
 
     const safePlayer = getLocalPlayer(playerId);
     delete safePlayer.password;
-    return { success: true, message, player: safePlayer };
+    return { success: true, message, player: safePlayer, card_id: cardId };
   },
 
   startTask: async (playerId, gridIndex) => {
@@ -1155,7 +1158,7 @@ function getRandomLocalCardId() {
 // ----------------- GAS 雲端服務 (Cloud GAS) -----------------
 function getGasUrl() {
   const settings = JSON.parse(localStorage.getItem('sa_settings') || '{}');
-  return settings.gas_url || import.meta.env.VITE_GAS_URL || '';
+  return import.meta.env.VITE_GAS_URL || settings.gas_url || '';
 }
 
 async function callGasApi(action, payload = {}, requesterId = null) {
@@ -1191,7 +1194,11 @@ async function callGasApi(action, payload = {}, requesterId = null) {
       localStorage.removeItem('sa_active_battle_id');
       window.location.reload();
     }
-    throw new Error(result.error || '未知的 API 錯誤');
+    const errObj = new Error(result.error || '未知的 API 錯誤');
+    if (result.card_id) {
+      errObj.card_id = result.card_id;
+    }
+    throw errObj;
   }
 
   return result;
@@ -1382,5 +1389,12 @@ export const ApiService = {
       return { success: true, levels: JSON.parse(localStorage.getItem('sa_level_config') || '[]') };
     }
     return callGasApi('get_level_config', {}, username);
+  },
+
+  getCards: async (username) => {
+    if (getApiMode() === 'local') {
+      return { success: true, cards: [] };
+    }
+    return callGasApi('get_cards', {}, username);
   }
 };

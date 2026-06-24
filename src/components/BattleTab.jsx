@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ApiService, getApiMode, registerBroadcastListener, postLocalBroadcast } from '../services/api';
-import { CARDS, calculateRoundEffects, RARITY_COLORS } from '../services/cardData';
+import { CARDS, calculateRoundEffects, RARITY_COLORS, convertGoogleDriveUrl } from '../services/cardData';
 import { 
   Swords, Trophy, Users, RefreshCw, 
   Hourglass, AlertCircle, PlayCircle, Info
@@ -25,11 +25,11 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
   const [sentInviteTimeLeft, setSentInviteTimeLeft] = useState(30);
   
   // 戰績統計 (localStorage 存儲)
+  const statsUpdatedRef = useRef(false);
   const [stats, setStats] = useState(() => {
     const saved = localStorage.getItem(`tcm_stats_${player.id}`);
     return saved ? JSON.parse(saved) : { total: 0, wins: 0, losses: 0 };
   });
-  const [statsUpdated, setStatsUpdated] = useState(false);
 
   // 戰鬥狀態
   const [selectedCardIds, setSelectedCardIds] = useState([]);
@@ -331,7 +331,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
     setTimeLeft(180);
     setShakingPlayer(null);
     setActiveCardDetail(null);
-    setStatsUpdated(false);
+    statsUpdatedRef.current = false;
     prevHpRef.current = { p1: null, p2: null };
     animatingRoundRef.current = null;
   };
@@ -355,7 +355,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
     setRoundTimeLeft(15);
     setShakingPlayer(null);
     setActiveCardDetail(null);
-    setStatsUpdated(false);
+    statsUpdatedRef.current = false;
   };
 
   // 5. 獲取對戰狀態 (進行回合結算判定)
@@ -427,8 +427,8 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
           syncUserExp();
 
           // 戰績結算統計
-          if (!statsUpdated) {
-            setStatsUpdated(true);
+          if (!statsUpdatedRef.current) {
+            statsUpdatedRef.current = true;
             setStats(prev => {
               const isWinner = String(nextState.winner_id || '').toLowerCase() === String(player.id || '').toLowerCase();
               const isDraw = nextState.winner_id === 'DRAW';
@@ -559,7 +559,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
     setLocalRoundNumber(1);
     setShowReveal(false);
     setShowRoundBanner(false);
-    setStatsUpdated(false); // 重置統計狀態
+    statsUpdatedRef.current = false; // 重置統計狀態
     prevHpRef.current = { p1: null, p2: null };
     
     fetchOnlinePlayers();
@@ -825,93 +825,115 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
     if (!showReveal) return null;
     return createPortal(
       <div className="tcm-modal-overlay animate-fade-in">
-        <div className="w-full max-w-md glass-panel glass-panel-neon p-5 space-y-5 text-center border border-amber-500/30 animate-scale-up">
-          <div className="space-y-1">
-            <h3 className="text-base font-black tracking-wider text-amber-500 font-mono flex items-center justify-center gap-1">
+        <div className="glass-panel glass-panel-neon text-center border border-amber-500/30 animate-scale-up" style={{ width: '290px', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', boxSizing: 'border-box' }}>
+          {/* 1. 標題區 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <h3 className="text-amber-500 font-mono font-bold flex items-center justify-center gap-1" style={{ fontSize: '11px', margin: 0, padding: 0 }}>
               ☯️ 醫道配藥對決結算 ☯️
             </h3>
-            <p className="text-[9px] text-gray-500 font-serif">
+            <p className="text-gray-500 font-serif" style={{ fontSize: '8px', margin: 0, padding: 0 }}>
               回合 {Math.min(5, battleState.round_number - 1)} 功力交鋒展示
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* 自己出的卡牌 */}
-            <div className="space-y-2 flex flex-col items-center">
-              <span className="text-[10px] text-emerald-400 font-bold font-serif tracking-wider border-b border-emerald-950 pb-1 w-full text-center">
-                自己 ({meObj ? meObj.id : ''}) 投藥
-              </span>
-              <div className="flex gap-1.5 justify-center flex-wrap">
-                {(() => {
-                  const lastActionStr = battleState ? (isP1 ? battleState.p1_last_action : battleState.p2_last_action) : "";
-                  const cardIds = lastActionStr ? String(lastActionStr).split(',').filter(Boolean) : [];
-                  if (cardIds.length === 0) return <span className="text-[10px] text-gray-500 font-serif py-8">空過 / 未出牌</span>;
-                  return cardIds.map((cid, i) => {
-                    const card = CARDS[cid];
-                    if (!card) return <span key={i} className="text-[9px] text-gray-600">無效</span>;
-                    const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
-                    return (
-                      <div 
-                        key={i} 
-                        className={`w-[90px] aspect-[0.72] p-1.5 border rounded-lg flex flex-col justify-between text-left transition duration-200 overflow-hidden relative shadow bg-zinc-900/95 ${cardRarity?.border || ''} ${cardRarity?.shadow || ''}`}
-                      >
-                        <div className="w-full text-center mb-1 leading-none">
-                          <span className={`text-[8px] font-black font-serif truncate block ${cardRarity?.text || ''}`}>{card.name}</span>
-                        </div>
-                        
-                        <div className="flex-1 w-full bg-black/45 rounded border border-amber-955/10 overflow-hidden relative min-h-[35px]">
-                          <img 
-                            src={card.image_url || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"} 
-                            alt={card.name} 
-                            className="w-full h-full object-cover" 
-                          />
-                        </div>
+          {/* 2. 對手出的卡牌 (中上部) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+            <span className="text-rose-400 font-bold font-serif" style={{ fontSize: '9px' }}>
+              同道 ({oppObj ? oppObj.id : ''}) 投藥
+            </span>
+            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+              {(() => {
+                const lastActionStr = battleState ? (!isP1 ? battleState.p1_last_action : battleState.p2_last_action) : "";
+                const cardIds = lastActionStr ? String(lastActionStr).split(',').filter(Boolean) : [];
+                if (cardIds.length === 0) return <span className="text-gray-500 font-serif" style={{ fontSize: '9px' }}>空過 / 未出牌</span>;
+                return cardIds.map((cid, i) => {
+                  const card = CARDS[cid];
+                  if (!card) return <span key={i} className="text-gray-600" style={{ fontSize: '9px' }}>無效</span>;
+                  const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
+                  return (
+                    <div 
+                      key={i} 
+                      className={`border rounded flex flex-col justify-between text-left transition duration-200 overflow-hidden relative shadow bg-zinc-900/95 ${cardRarity?.border || ''} ${cardRarity?.shadow || ''}`}
+                      style={{ width: '56px', height: '66px', boxSizing: 'border-box', padding: '3px', aspectRatio: '0.85' }}
+                    >
+                      <div className="w-full text-center mb-0.5 leading-none">
+                        <span className={`font-black font-serif truncate block ${cardRarity?.text || ''}`} style={{ fontSize: '6px' }}>{card.name}</span>
                       </div>
-                    );
-                  });
-                })()}
-              </div>
-            </div>
-
-            {/* 對手出的卡牌 */}
-            <div className="space-y-2 flex flex-col items-center">
-              <span className="text-[10px] text-rose-400 font-bold font-serif tracking-wider border-b border-rose-955 pb-1 w-full text-center">
-                同道 ({oppObj ? oppObj.id : ''}) 投藥
-              </span>
-              <div className="flex gap-1.5 justify-center flex-wrap">
-                {(() => {
-                  const lastActionStr = battleState ? (!isP1 ? battleState.p1_last_action : battleState.p2_last_action) : "";
-                  const cardIds = lastActionStr ? String(lastActionStr).split(',').filter(Boolean) : [];
-                  if (cardIds.length === 0) return <span className="text-[10px] text-gray-500 font-serif py-8">空過 / 未出牌</span>;
-                  return cardIds.map((cid, i) => {
-                    const card = CARDS[cid];
-                    if (!card) return <span key={i} className="text-[9px] text-gray-600">無效</span>;
-                    const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
-                    return (
-                      <div 
-                        key={i} 
-                        className={`w-[90px] aspect-[0.72] p-1.5 border rounded-lg flex flex-col justify-between text-left transition duration-200 overflow-hidden relative shadow bg-zinc-900/95 ${cardRarity?.border || ''} ${cardRarity?.shadow || ''}`}
-                      >
-                        <div className="w-full text-center mb-1 leading-none">
-                          <span className={`text-[8px] font-black font-serif truncate block ${cardRarity?.text || ''}`}>{card.name}</span>
-                        </div>
-                        
-                        <div className="flex-1 w-full bg-black/45 rounded border border-amber-955/10 overflow-hidden relative min-h-[35px]">
-                          <img 
-                            src={card.image_url || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"} 
-                            alt={card.name} 
-                            className="w-full h-full object-cover" 
-                          />
-                        </div>
+                      
+                      <div className="rounded border border-amber-955/10 overflow-hidden relative" style={{ width: '100%', height: '36px' }}>
+                        <img 
+                          src={convertGoogleDriveUrl(card.image_url) || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"} 
+                          alt={card.name} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                       </div>
-                    );
-                  });
-                })()}
-              </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
 
-          <div className="text-[9px] text-amber-500/70 font-serif animate-pulse">
+          {/* 3. 中部文字說明 */}
+          <div className="bg-black/50 rounded border border-amber-955/10 text-center font-serif" style={{ padding: '6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {(() => {
+              const myLastActionStr = battleState ? (isP1 ? battleState.p1_last_action : battleState.p2_last_action) : "";
+              const myCardIds = myLastActionStr ? String(myLastActionStr).split(',').filter(Boolean) : [];
+              const myCardNames = myCardIds.map(cid => CARDS[cid]?.name || '無效').join(' + ') || '空過/未出牌';
+
+              const oppLastActionStr = battleState ? (!isP1 ? battleState.p1_last_action : battleState.p2_last_action) : "";
+              const oppCardIds = oppLastActionStr ? String(oppLastActionStr).split(',').filter(Boolean) : [];
+              const oppCardNames = oppCardIds.map(cid => CARDS[cid]?.name || '無效').join(' + ') || '空過/未出牌';
+
+              return (
+                <div className="text-gray-300 leading-normal" style={{ fontSize: '9px' }}>
+                  <p style={{ margin: 0 }}>自己投藥：<span className="text-emerald-400 font-bold">{myCardNames}</span></p>
+                  <p style={{ margin: 0 }}>同道投藥：<span className="text-rose-400 font-bold">{oppCardNames}</span></p>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* 4. 自己出的卡牌 (中下部) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+            <span className="text-emerald-400 font-bold font-serif" style={{ fontSize: '9px' }}>
+              自己 投藥
+            </span>
+            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+              {(() => {
+                const lastActionStr = battleState ? (isP1 ? battleState.p1_last_action : battleState.p2_last_action) : "";
+                const cardIds = lastActionStr ? String(lastActionStr).split(',').filter(Boolean) : [];
+                if (cardIds.length === 0) return <span className="text-gray-500 font-serif" style={{ fontSize: '9px' }}>空過 / 未出牌</span>;
+                return cardIds.map((cid, i) => {
+                  const card = CARDS[cid];
+                  if (!card) return <span key={i} className="text-gray-600" style={{ fontSize: '9px' }}>無效</span>;
+                  const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
+                  return (
+                    <div 
+                      key={i} 
+                      className={`border rounded flex flex-col justify-between text-left transition duration-200 overflow-hidden relative shadow bg-zinc-900/95 ${cardRarity?.border || ''} ${cardRarity?.shadow || ''}`}
+                      style={{ width: '56px', height: '66px', boxSizing: 'border-box', padding: '3px', aspectRatio: '0.85' }}
+                    >
+                      <div className="w-full text-center mb-0.5 leading-none">
+                        <span className={`font-black font-serif truncate block ${cardRarity?.text || ''}`} style={{ fontSize: '6px' }}>{card.name}</span>
+                      </div>
+                      
+                      <div className="rounded border border-amber-955/10 overflow-hidden relative" style={{ width: '100%', height: '36px' }}>
+                        <img 
+                          src={convertGoogleDriveUrl(card.image_url) || "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&auto=format&fit=crop"} 
+                          alt={card.name} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
+          {/* 5. 底部提示 */}
+          <div className="text-amber-500/70 font-serif animate-pulse border-t border-amber-955/10" style={{ fontSize: '8px', paddingTop: '6px', margin: 0 }}>
             🔮 回合展示中，功力調和後自動推進下一回合...
           </div>
         </div>
@@ -922,7 +944,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
 
   try {
     return (
-      <div className="space-y-6">
+      <div className="w-full max-w-full space-y-4" style={{ boxSizing: 'border-box', overflowX: 'hidden' }}>
       
       {error && (
         <div className="p-3 bg-rose-955/40 border border-rose-500/20 text-rose-300 text-xs rounded-lg flex items-center gap-2 animate-shake">
@@ -1066,13 +1088,16 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
         
         const renderCard = (index) => {
           const cardId = activeDeck[index];
+
+          // 空白槽：直接挪用技能卡槽的空槽樣式，保留一致的0.85比例與外觀
           if (!cardId) {
             return (
               <div 
                 key={`empty-${index}`} 
-                className="w-full aspect-[0.72] border border-dashed border-amber-900/10 rounded-lg bg-black/30 flex items-center justify-center opacity-25 text-[8px] text-gray-600 font-mono font-bold"
+                className="tcm-skill-slot empty-slot cursor-default"
+                style={{ aspectRatio: '0.85' }}
               >
-                無
+                <span className="tcm-skill-slot-index z-10">{index + 1}</span>
               </div>
             );
           }
@@ -1082,76 +1107,74 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
 
           const isUsed = usedCardIds.includes(cardId) || 
             (usedCardIds.filter(id => id === cardId).length > (player.deck.filter(id => id === cardId).length - 1));
+          
           const isSelected = selectedCardIds.includes(cardId);
           const rarityStyle = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
 
           return (
             <button
               key={`${cardId}-${index}`}
-              disabled={isUsed || actionSubmitted || !isMyTurn}
+              disabled={actionSubmitted || !isMyTurn || isUsed}
               onClick={() => handleSelectCard(cardId)}
-              className={`w-full aspect-[0.72] border rounded-lg transition duration-200 overflow-hidden relative shadow bg-zinc-900/90 active:scale-95 disabled:pointer-events-none disabled:active:scale-100 ${
-                isUsed ? 'opacity-25 filter grayscale' :
-                isSelected ? 'tcm-card-selected' : 
-                `${rarityStyle.border} ${rarityStyle.shadow} hover:border-amber-500/60`
-              }`}
+              className={`tcm-skill-slot ${isSelected ? 'active' : ''} ${rarityStyle.border} transition duration-200 overflow-hidden relative shadow bg-zinc-900/90 active:scale-95 disabled:active:scale-100`}
+              style={{ 
+                aspectRatio: '0.85',
+                pointerEvents: isUsed ? 'none' : 'auto',
+                filter: isUsed ? 'grayscale(1)' : 'none',
+                opacity: isUsed ? 0.45 : 1
+              }}
             >
-              {/* 右上角 Information 標示 */}
+              {/* 圖片鋪滿與 Fallback 大字 */}
+              {card.image_url ? (
+                <img 
+                  src={convertGoogleDriveUrl(card.image_url)} 
+                  alt={card.name} 
+                  className="absolute inset-0 w-full h-full object-cover rounded"
+                />
+              ) : (
+                <span className={`tcm-skill-slot-name ${rarityStyle.text}`}>
+                  {card.name}
+                </span>
+              )}
+
+              <span className="tcm-skill-slot-index z-10">{index + 1}</span>
+
+              {/* 右上角 Information 標示 - 明顯發光金邊版 */}
               <span
                 role="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setActiveCardDetail(card);
                 }}
-                className="absolute top-1 right-1 z-20 p-0.5 rounded-full bg-black/85 text-amber-400 hover:text-amber-300 hover:bg-black transition cursor-pointer flex items-center justify-center"
+                className="absolute top-1 right-1 z-20 p-0.5 rounded-full bg-black/95 text-amber-400 hover:text-amber-200 hover:bg-black transition cursor-pointer flex items-center justify-center border border-amber-500/40 shadow-[0_0_4px_rgba(245,158,11,0.6)]"
                 title="查看效果"
               >
-                <Info size={8} />
+                <Info size={9} />
               </span>
-
-              {/* 圖片鋪滿與 Fallback 大字 */}
-              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-black/40">
-                <span className={`text-[12px] opacity-20 font-black font-serif ${rarityStyle.text}`}>
-                  {card.name.slice(0, 1)}
-                </span>
-                {card.image_url && (
-                  <img 
-                    src={card.image_url} 
-                    alt={card.name} 
-                    className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* 底部居中名稱 (符合附圖左側) */}
-              <div className="absolute bottom-0 left-0 right-0 py-0.5 text-center bg-black/75 border-t border-amber-500/10 backdrop-blur-[1px]">
-                <span className={`text-[6px] font-black font-serif tracking-tight truncate block px-0.5 ${rarityStyle.text}`}>
-                  {card.name}
-                </span>
-              </div>
             </button>
           );
         };
 
         return (
-          <div className="flex flex-col items-center w-full max-w-2xl mx-auto space-y-2">
+          <div className="w-full flex flex-col mx-auto" style={{ boxSizing: 'border-box', padding: '0', gap: '4px', maxWidth: '100%' }}>
             
             {/* 0. 房號 */}
             <div className="flex flex-row justify-between items-center w-full px-2 py-0.5 text-[9px] border-b border-amber-955/20 text-gray-500 font-mono">
               <span>房號: {battleState.battle_id.replace('BAT_', '')}</span>
             </div>
 
-            {/* 1. 對手數據 (對手在上方) */}
-            <div className="w-full">
+            {/* 1. 對手區 - 包裹 tcm-battle-section */}
+            <div className="tcm-battle-section w-full">
+              <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 2px 0' }}>
+                【 同道切磋狀態 】
+              </div>
               <div 
-                className={`w-full glass-panel p-2 border-amber-900/30 relative space-y-1 border transition duration-150 ${
-                  shakingPlayer === oppObj.role ? 'animate-shake border-red-500/50 bg-red-950/20' : ''
+                className={`w-full relative space-y-0.5 transition duration-150 ${
+                  shakingPlayer === oppObj.role ? 'animate-shake bg-red-950/15' : ''
                 }`}
+                style={{ boxSizing: 'border-box' }}
               >
-                <div className="flex justify-between items-center text-[9px] text-red-400 font-bold font-serif">
+                <div className="flex justify-between items-center text-[9px] text-red-400 font-bold font-serif leading-none pt-0.5">
                   <span>同道衛氣 (敵)</span>
                   <div className="flex items-center gap-1">
                     <span className="text-gray-400 truncate max-w-[80px]" title={oppObj.id}>{oppObj.id}</span>
@@ -1161,21 +1184,21 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
                   </div>
                 </div>
                 
-                <div className="flex justify-between items-center text-[10px] font-mono font-bold text-red-400 leading-none pt-0.5">
+                <div className="flex justify-between items-center text-[9px] font-mono font-bold text-red-400 leading-none pt-0.5">
                   <span>營血</span>
                   <span>{oppObj.hp}/{oppObj.maxHp}</span>
                 </div>
 
                 {/* 營血條 */}
-                <div className="hp-bar-container" style={{ height: '10px' }}>
+                <div className="hp-bar-container" style={{ height: '6px', background: 'rgba(0,0,0,0.5)', borderRadius: '3px' }}>
                   <div 
-                    className="hp-bar-fill bg-gradient-to-r from-red-600 to-amber-700"
-                    style={{ width: `${Math.max(0, (oppObj.hp / oppObj.maxHp) * 100)}%` }}
+                    className="hp-bar-fill bg-gradient-to-r from-red-600 to-amber-700 animate-pulse"
+                    style={{ width: `${Math.max(0, (oppObj.hp / oppObj.maxHp) * 100)}%`, borderRadius: '3px' }}
                   ></div>
                 </div>
 
                 {/* 屬性單行顯示 */}
-                <div className="flex justify-between text-[9px] font-mono bg-black/40 px-1 py-0.5 rounded border border-amber-955/10 leading-none">
+                <div className="flex justify-between text-[9px] font-mono leading-none pt-1 text-gray-400">
                   <span>內功: <span className="text-amber-400 font-bold">{oppObj.atk}</span></span>
                   <span>衛氣: <span className="text-amber-400 font-bold">{oppObj.def}</span></span>
                 </div>
@@ -1185,9 +1208,9 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
                   if (!calc) return null;
                   const netChange = calc.heal - (calc.physDmg + calc.skillDmg);
                   return (
-                    <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/20 pt-1 leading-none">
+                    <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/10 pt-1 leading-none">
                       <span>損: <span className="text-rose-400">-{calc.physDmg + calc.skillDmg}</span></span>
-                      <span>療: <span className="text-emerald-400">+{calc.heal}</span></span>
+                      <span>療: <span className="text-emerald-400 font-bold">+{calc.heal}</span></span>
                       <span className={netChange >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
                         ({netChange >= 0 ? '+' : ''}{netChange})
                       </span>
@@ -1197,52 +1220,52 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
               </div>
             </div>
 
-            {/* 2. 出牌輪數與計時區 (置於對手與個人數據之間) */}
-            <div className="flex flex-col items-center justify-center w-full py-1">
-              <span className="text-xs text-gray-300 font-bold font-serif">
-                出牌輪數：{showReveal ? Math.min(5, battleState.round_number - 1) : Math.min(5, battleState.round_number)} / 5
-              </span>
-              <div className={`flex items-center gap-1 font-mono text-xs px-3 py-1 rounded-full border shadow transition duration-300 mt-0.5 ${
-                ((isMyTurn && roundTimeLeft <= 5) || showReveal)
-                  ? 'bg-rose-955/35 border-rose-500 text-rose-400 animate-pulse' 
-                  : 'bg-amber-955/20 border-amber-500/20 text-amber-400'
-              }`}>
-                <Hourglass size={11} className={((isMyTurn && roundTimeLeft <= 5) || showReveal) ? "animate-bounce text-rose-500" : "animate-spin text-amber-500"} />
-                <span className="font-bold">
-                  {showReveal ? "回合結算中..." : 
-                   !isMyTurn ? "等候對方配置藥效..." : 
-                   `回合剩餘時間：00:${String(roundTimeLeft).padStart(2, '0')}`}
-                </span>
+            {/* 2. 計時區 - 包裹 tcm-battle-section */}
+            <div className="tcm-battle-section w-full">
+              <div className="flex flex-row justify-between items-center w-full text-[9px] text-gray-400 font-serif leading-none" style={{ boxSizing: 'border-box' }}>
+                <span>出牌輪數: {showReveal ? Math.min(5, battleState.round_number - 1) : Math.min(5, battleState.round_number)} / 5</span>
+                <div className="flex items-center gap-1 font-mono text-[9px] text-amber-400">
+                  <Hourglass size={10} className={((isMyTurn && roundTimeLeft <= 5) || showReveal) ? "animate-bounce text-rose-500" : "animate-spin text-amber-500"} />
+                  <span>
+                    {showReveal ? "回合展示中" : 
+                     !isMyTurn ? "等待同道配置..." : 
+                     `剩餘:${roundTimeLeft}秒`}
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* 3. 個人數據 (個人在下方) */}
-            <div className="w-full">
+            {/* 3. 個人區 - 包裹 tcm-battle-section */}
+            <div className="tcm-battle-section w-full">
+              <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 2px 0' }}>
+                【 吾身切磋狀態 】
+              </div>
               <div 
-                className={`w-full glass-panel p-2 border-amber-900/30 relative space-y-1 border transition duration-150 ${
-                  shakingPlayer === meObj.role ? 'animate-shake border-red-500/50 bg-red-950/20' : ''
+                className={`w-full relative space-y-0.5 transition duration-150 ${
+                  shakingPlayer === meObj.role ? 'animate-shake bg-red-950/15' : ''
                 }`}
+                style={{ boxSizing: 'border-box' }}
               >
-                <div className="flex justify-between items-center text-[9px] text-amber-500 font-bold font-serif">
+                <div className="flex justify-between items-center text-[9px] text-amber-500 font-bold font-serif leading-none pt-0.5">
                   <span>吾身衛氣 (我)</span>
                   <span className="text-gray-400 truncate max-w-[80px]" title={meObj.id}>{meObj.id}</span>
                 </div>
                 
-                <div className="flex justify-between items-center text-[10px] font-mono font-bold text-amber-400 leading-none pt-0.5">
+                <div className="flex justify-between items-center text-[9px] font-mono font-bold text-amber-400 leading-none pt-0.5">
                   <span>營血</span>
                   <span>{meObj.hp}/{meObj.maxHp}</span>
                 </div>
 
                 {/* 營血條 */}
-                <div className="hp-bar-container" style={{ height: '10px' }}>
+                <div className="hp-bar-container" style={{ height: '6px', background: 'rgba(0,0,0,0.5)', borderRadius: '3px' }}>
                   <div 
-                    className="hp-bar-fill"
-                    style={{ width: `${Math.max(0, (meObj.hp / meObj.maxHp) * 100)}%` }}
+                    className="hp-bar-fill animate-pulse"
+                    style={{ width: `${Math.max(0, (meObj.hp / meObj.maxHp) * 100)}%`, borderRadius: '3px' }}
                   ></div>
                 </div>
 
-                {/* 屬性單行顯示 */}
-                <div className="flex justify-between text-[9px] font-mono bg-black/40 px-1 py-0.5 rounded border border-amber-955/10 leading-none">
+                {/* 屬性單行顯示 - 純文字排版，不加背景容器 */}
+                <div className="flex justify-between text-[9px] font-mono leading-none pt-0.5 text-gray-400">
                   <span>內功: <span className="text-amber-400 font-bold">{meObj.atk}</span></span>
                   <span>衛氣: <span className="text-amber-400 font-bold">{meObj.def}</span></span>
                 </div>
@@ -1252,7 +1275,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
                   if (!calc) return null;
                   const netChange = calc.heal - (calc.physDmg + calc.skillDmg);
                   return (
-                    <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/20 pt-1 leading-none">
+                    <div className="text-[8px] font-serif flex gap-1 justify-between text-gray-400 border-t border-amber-955/10 pt-1 leading-none">
                       <span>損: <span className="text-rose-400">-{calc.physDmg + calc.skillDmg}</span></span>
                       <span>療: <span className="text-emerald-400">+{calc.heal}</span></span>
                       <span className={netChange >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
@@ -1264,14 +1287,17 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
               </div>
             </div>
 
-            {/* 4. 技能卡牌選擇與操作中心 (卡牌槽) */}
+            {/* 4. 出牌區 - 包裹 tcm-battle-section */}
             {battleState && battleState.status === 'active' && (
               <div 
-                className={`w-full transition-opacity duration-300 ${
-                  showReveal ? 'opacity-25 pointer-events-none' : ''
-                }`}
+                className="tcm-battle-section w-full transition-opacity duration-300"
+                style={{ opacity: showReveal ? 0.25 : 1, pointerEvents: showReveal ? 'none' : 'auto', boxSizing: 'border-box' }}
               >
-                <div className="glass-panel p-2 border-amber-900/30 border w-full">
+                <div className="text-[8px] text-amber-500 font-bold font-serif leading-none pb-0.5 border-b border-amber-900/20" style={{ margin: '0 0 3px 0' }}>
+                  【 方劑配藥出牌區 】
+                </div>
+
+                <div className="w-full overflow-hidden" style={{ boxSizing: 'border-box' }}>
                   <div className="tcm-battle-cards-ring-grid">
                     {/* Row 1 */}
                     {renderCard(0)}
@@ -1286,11 +1312,12 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
                         id="btn-battle-submit"
                         disabled={selectedCardIds.length === 0 || actionSubmitted || !isMyTurn}
                         onClick={handleSubmitAction}
-                        className="btn-neon w-full h-full min-h-[48px] text-[10px] font-bold transition transform active:scale-95 disabled:opacity-50 flex items-center justify-center text-center leading-tight py-1"
+                        className="btn-neon w-full transition transform active:scale-95 disabled:opacity-50 flex items-center justify-center text-center font-serif leading-none tcm-grid-button"
+                        style={{ height: '36px', minHeight: '36px', fontSize: '9px', padding: '2px 4px' }}
                       >
                         {!isMyTurn ? '等候出牌' :
-                         actionSubmitted ? '已出牌\n等候同道' : 
-                         `確認出牌\n(${selectedCardIds.length}/2)`}
+                         actionSubmitted ? '已配置藥效' : 
+                         `確認出牌 (${selectedCardIds.length}/2)`}
                       </button>
                     </div>
                     {renderCard(5)}
@@ -1308,12 +1335,13 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
 
 
           {/* 回合特效 banner */}
-          {showRoundBanner && (
+          {showRoundBanner && createPortal(
             <div className="tcm-round-banner-overlay">
               <div className="tcm-round-banner-text">
                 Round {roundBannerNum}
               </div>
-            </div>
+            </div>,
+            document.body
           )}
 
           {renderCardDetailPortal()}

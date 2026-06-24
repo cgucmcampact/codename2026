@@ -145,6 +145,13 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 12px; /* 留出一定的上下左右間距，防止貼死邊緣 */
+  box-sizing: border-box;
 }
 
 /* 捲軸美化 */
@@ -2084,13 +2091,28 @@ body {
 /* 4*3 表格卡牌槽與提交按鈕排版 (Vainlla CSS) */
 .tcm-battle-cards-ring-grid {
   display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   grid-template-rows: repeat(3, auto) !important;
-  gap: 6px !important;
+  gap: 4px !important;
   width: 100% !important;
-  max-width: 380px !important;
+  max-width: 100% !important;
   margin: 0 auto !important;
   box-sizing: border-box !important;
+}
+
+.tcm-battle-section {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: rgba(14, 10, 7, 0.96) !important;
+  border: 1.5px solid rgba(197, 160, 89, 0.45) !important;
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  box-sizing: border-box !important;
+  margin-bottom: 5px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 10px rgba(197, 160, 89, 0.05) !important;
 }
 
 .tcm-battle-submit-btn-wrapper {
@@ -2100,7 +2122,25 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 2px !important;
+  padding: 1px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.tcm-grid-button {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+
+.tcm-battle-mode-shell {
+  padding: 8px 10px !important;
+  gap: 6px !important;
+  max-width: 320px !important;
 }
 
 /* 全域 Portals 浮動視窗遮罩 */
@@ -2277,6 +2317,30 @@ body {
   background: rgba(28, 20, 14, 0.96) !important;
   border: 1px solid var(--primary-gold) !important;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8) !important;
+}
+
+.tcm-claim-result-card {
+  max-width: 290px !important;
+  width: 90% !important;
+  max-height: 60vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 12px 14px !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.tcm-claim-card-scroll-area {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+  padding: 4px 2px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
 }
 
 /* 婉拒按鈕 */

@@ -27,7 +27,7 @@ export default function AdminPanel({ player }) {
   // 當生成了 Token 時，在 Canvas 上繪製 QR Code
   useEffect(() => {
     if (generatedToken && canvasRef.current) {
-      const claimUrl = `${window.location.origin}${window.location.pathname}?action=claim&token=${generatedToken}`;
+      const claimUrl = `${window.location.origin}${window.location.pathname}?action=claim&token=${generatedToken}&card_id=${selectedCardId}`;
       QRCode.toCanvas(
         canvasRef.current, 
         claimUrl, 
@@ -52,14 +52,21 @@ export default function AdminPanel({ player }) {
     try {
       const res = await ApiService.adminGetQuotas(player.id);
       if (res.success) {
-        setQuotas(res.quotas || []);
-        if (res.quotas && res.quotas.length > 0) {
-          const activeQ = res.quotas.find(q => q.quota === '無限' || Number(q.quota) > 0);
-          setSelectedCardId(activeQ ? activeQ.card_id : res.quotas[0].card_id);
+        const qList = res.quotas || [];
+        setQuotas(qList);
+        
+        const activeList = qList.length > 0 ? qList : Object.keys(CARDS).map(cid => ({ card_id: cid, quota: '無限' }));
+        if (activeList.length > 0) {
+          const activeQ = activeList.find(q => q.quota === '無限' || Number(q.quota) > 0);
+          setSelectedCardId(activeQ ? activeQ.card_id : activeList[0].card_id);
         }
       }
     } catch (err) {
       setError(err.message || '獲取管理員配額失敗');
+      const localList = Object.keys(CARDS);
+      if (localList.length > 0) {
+        setSelectedCardId(localList[0]);
+      }
     } finally {
       setLoading(false);
     }
@@ -172,7 +179,11 @@ export default function AdminPanel({ player }) {
                 onChange={(e) => setSelectedCardId(e.target.value)}
                 className="w-full sm:flex-1 bg-gray-950 border border-gray-800 rounded px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-purple-500 text-center"
               >
-                {quotas.map(q => {
+                {(quotas.length > 0 ? quotas : Object.keys(CARDS).map(cid => ({
+                  card_id: cid,
+                  card_name: CARDS[cid]?.name || cid,
+                  quota: '無限'
+                }))).map(q => {
                   const card = CARDS[q.card_id];
                   const hasQuota = q.quota === '無限' || Number(q.quota) > 0;
                   return (
@@ -190,7 +201,7 @@ export default function AdminPanel({ player }) {
 
               <button
                 id="btn-admin-generate"
-                disabled={loading || quotas.length === 0}
+                disabled={loading || (quotas.length === 0 && Object.keys(CARDS).length === 0)}
                 onClick={handleGenerateQr}
                 className="btn-neon py-2 px-4 text-xs font-bold w-full sm:w-auto shrink-0"
               >

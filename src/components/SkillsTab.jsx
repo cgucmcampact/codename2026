@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { CARDS, RARITY_COLORS } from '../services/cardData';
+import { CARDS, RARITY_COLORS, detectRewardCards, convertGoogleDriveUrl } from '../services/cardData';
 import { ApiService } from '../services/api';
-import { Sparkles, Trash2, Plus, ShieldAlert, Award, ChevronLeft, ChevronRight, QrCode, Camera, CameraOff, X, Info } from 'lucide-react';
+import { Sparkles, Trash2, Plus, ShieldAlert, Award, ChevronLeft, ChevronRight, QrCode, Camera, CameraOff, X, Info, Leaf } from 'lucide-react';
 
 export default function SkillsTab({ player, onPlayerUpdate }) {
   const [deck, setDeck] = useState(Array(10).fill(""));
@@ -762,24 +762,66 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
       {/* 獲得獎勵浮動彈窗 */}
       {rewardMessage && createPortal(
         <div className="tcm-modal-overlay" style={{ zIndex: 1000 }}>
-          <div className="glass-panel p-6 max-w-xs w-full text-center space-y-4 border-2 border-amber-500/40 relative animate-scaleUp" onClick={e => e.stopPropagation()}>
-            <div className="text-amber-500 flex justify-center">
-              <Sparkles size={32} className="animate-bounce" />
-            </div>
-            <h3 className="text-base font-bold text-gray-100 font-serif">
-              🎉 醫道修煉機緣
-            </h3>
-            <p className="text-[9px] text-amber-700 uppercase tracking-widest font-mono font-bold">
-              New Fortune Acquired
-            </p>
-            <div className="py-2.5 px-3 bg-black/40 border border-amber-950/40 rounded-lg">
-              <p className="text-xs text-amber-100 font-serif leading-relaxed">
-                {rewardMessage}
+          <div className="glass-panel tcm-claim-result-card p-4 text-center border-2 border-amber-500/40 relative animate-scaleUp" onClick={e => e.stopPropagation()}>
+            <div className="text-center space-y-1">
+              <h3 className="text-sm font-bold text-gray-200 font-serif">
+                🎉 醫道修煉機緣
+              </h3>
+              <p className="text-[8px] text-amber-700 uppercase tracking-widest font-mono font-bold">
+                New Fortune Acquired
               </p>
+              <div className="py-1.5 px-2 bg-black/40 border border-amber-955/40 rounded-lg max-h-[60px] overflow-y-auto">
+                <p className="text-[10px] text-amber-100 font-serif leading-relaxed">
+                  {rewardMessage}
+                </p>
+              </div>
             </div>
+
+            {/* 卡片圖示與詳情顯示 */}
+            {(() => {
+              const rewardCards = detectRewardCards(rewardMessage);
+              if (rewardCards.length === 0) return null;
+              return (
+                <div className="tcm-claim-card-scroll-area">
+                  {rewardCards.map(card => {
+                    const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
+                    return (
+                      <div 
+                        key={card.id}
+                        className={`game-card border ${cardRarity.border} ${cardRarity.shadow} relative overflow-hidden bg-black/55 rounded-lg mx-auto flex-shrink-0`}
+                        style={{ width: '180px', height: '80px', minHeight: 'auto', padding: '0' }}
+                      >
+                        {card.image_url ? (
+                          <img 
+                            src={convertGoogleDriveUrl(card.image_url)} 
+                            alt={card.name} 
+                            className="absolute inset-0 w-full h-full object-cover flex-shrink-0"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-amber-950/10 to-emerald-950/10 flex items-center justify-center">
+                            <Leaf size={24} className="text-amber-600/30 animate-pulse" />
+                          </div>
+                        )}
+                        <div 
+                          className="absolute bottom-0 left-0 right-0 bg-black/75 py-1 px-1.5 flex flex-col items-center justify-center text-center border-t border-amber-500/10 leading-none z-10"
+                          style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+                        >
+                          <h4 className={`text-[10px] font-black font-serif ${cardRarity.text} leading-tight`}>{card.name}</h4>
+                          <span className="text-[7px] uppercase tracking-widest text-amber-700/80 font-mono font-bold mt-0.5">
+                            {card.rarity}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
             <button
               onClick={() => setRewardMessage('')}
-              className="btn-neon w-full py-2 text-xs font-bold font-serif"
+              className="btn-neon w-full py-1.5 text-xs font-bold font-serif mt-1"
             >
               收下獎勵
             </button>

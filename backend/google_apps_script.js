@@ -413,33 +413,51 @@ function getCardsList(ss) {
   var data = sheet.getDataRange().getValues();
   var list = [];
   
+  if (data.length <= 1) return { success: true, cards: [] };
+  
+  var headers = data[0];
+  var colMap = {};
+  for (var c = 0; c < headers.length; c++) {
+    colMap[String(headers[c]).trim().toLowerCase()] = c;
+  }
+  
+  var getVal = function(row, fieldNames, defaultVal) {
+    for (var f = 0; f < fieldNames.length; f++) {
+      var idx = colMap[fieldNames[f].toLowerCase()];
+      if (idx !== undefined && idx !== -1) {
+        return row[idx];
+      }
+    }
+    return defaultVal;
+  };
+  
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
     list.push({
-      id: String(row[0]),
-      name: String(row[1]),
-      type: String(row[2]),
-      sub_type: String(row[3]),
-      element: String(row[4] || ""),
-      rarity: String(row[5] || ""),
-      atk_mod: Number(row[6] || 0),
-      def_mod: Number(row[7] || 0),
-      description: String(row[8] || ""),
-      image_url: String(row[9] || ""),
-      self_atk: String(row[10] || ""),
-      self_def: String(row[11] || ""),
-      ops_atk: String(row[12] || ""),
-      ops_def: String(row[13] || ""),
-      self_othr_atk: String(row[14] || ""),
-      self_othr_def: String(row[15] || ""),
-      self_othr_ele: String(row[16] || ""),
-      ops_any_atk: String(row[17] || ""),
-      ops_any_def: String(row[18] || ""),
-      ops_any_ele: String(row[19] || ""),
-      target: String(row[20] || "self"),
-      atk_aft: Number(row[21] || 0),
-      def_aft: Number(row[22] || 0),
-      hp_aft: Number(row[23] || 0)
+      id: String(getVal(row, ["id"], "")),
+      name: String(getVal(row, ["name", "名稱"], "")),
+      type: String(getVal(row, ["type", "類型"], "")),
+      sub_type: String(getVal(row, ["sub_type", "部位", "子類型"], "")),
+      element: String(getVal(row, ["element", "五行"], "")),
+      rarity: String(getVal(row, ["rarity", "稀有度"], "")),
+      atk_mod: Number(getVal(row, ["atk_mod", "內功", "初始內功"], 0)),
+      def_mod: Number(getVal(row, ["def_mod", "衛氣", "初始衛氣"], 0)),
+      description: String(getVal(row, ["description", "說明", "描述", "卡牌描述"], "")),
+      image_url: String(getVal(row, ["image_url", "圖片", "圖片連結"], "")),
+      self_atk: String(getVal(row, ["self_atk"], "")),
+      self_def: String(getVal(row, ["self_def"], "")),
+      ops_atk: String(getVal(row, ["ops_atk"], "")),
+      ops_def: String(getVal(row, ["ops_def"], "")),
+      self_othr_atk: String(getVal(row, ["self_othr_atk"], "")),
+      self_othr_def: String(getVal(row, ["self_othr_def"], "")),
+      self_othr_ele: String(getVal(row, ["self_othr_ele"], "")),
+      ops_any_atk: String(getVal(row, ["ops_any_atk"], "")),
+      ops_any_def: String(getVal(row, ["ops_any_def"], "")),
+      ops_any_ele: String(getVal(row, ["ops_any_ele"], "")),
+      target: String(getVal(row, ["target", "目標"], "self")),
+      atk_aft: Number(getVal(row, ["atk_aft", "觸發後內功", "內功強度"], 0)),
+      def_aft: Number(getVal(row, ["def_aft", "觸發後衛氣", "衛氣強度"], 0)),
+      hp_aft: Number(getVal(row, ["hp_aft", "觸發後營血", "營血調養"], 0))
     });
   }
   return { success: true, cards: list };
@@ -469,34 +487,52 @@ function getCardsDict(ss) {
   var data = sheet.getDataRange().getValues();
   var dict = {};
   
+  if (data.length <= 1) return dict;
+  
+  var headers = data[0];
+  var colMap = {};
+  for (var c = 0; c < headers.length; c++) {
+    colMap[String(headers[c]).trim().toLowerCase()] = c;
+  }
+  
+  var getVal = function(row, fieldNames, defaultVal) {
+    for (var f = 0; f < fieldNames.length; f++) {
+      var idx = colMap[fieldNames[f].toLowerCase()];
+      if (idx !== undefined && idx !== -1) {
+        return row[idx];
+      }
+    }
+    return defaultVal;
+  };
+  
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
-    var id = String(row[0]);
+    var id = String(getVal(row, ["id"], ""));
     dict[id] = {
       id: id,
-      name: String(row[1]),
-      type: String(row[2]),
-      sub_type: String(row[3]),
-      element: String(row[4] || ""),
-      rarity: String(row[5] || ""),
-      atk_mod: Number(row[6] || 0),
-      def_mod: Number(row[7] || 0),
-      description: String(row[8] || ""),
-      image_url: String(row[9] || ""),
-      self_atk: String(row[10] || ""),
-      self_def: String(row[11] || ""),
-      ops_atk: String(row[12] || ""),
-      ops_def: String(row[13] || ""),
-      self_othr_atk: String(row[14] || ""),
-      self_othr_def: String(row[15] || ""),
-      self_othr_ele: String(row[16] || ""),
-      ops_any_atk: String(row[17] || ""),
-      ops_any_def: String(row[18] || ""),
-      ops_any_ele: String(row[19] || ""),
-      target: String(row[20] || "self"),
-      atk_aft: Number(row[21] || 0),
-      def_aft: Number(row[22] || 0),
-      hp_aft: Number(row[23] || 0)
+      name: String(getVal(row, ["name", "名稱"], "")),
+      type: String(getVal(row, ["type", "類型"], "")),
+      sub_type: String(getVal(row, ["sub_type", "部位", "子類型"], "")),
+      element: String(getVal(row, ["element", "五行"], "")),
+      rarity: String(getVal(row, ["rarity", "稀有度"], "")),
+      atk_mod: Number(getVal(row, ["atk_mod", "內功", "初始內功"], 0)),
+      def_mod: Number(getVal(row, ["def_mod", "衛氣", "初始衛氣"], 0)),
+      description: String(getVal(row, ["description", "說明", "描述", "卡牌描述"], "")),
+      image_url: String(getVal(row, ["image_url", "圖片", "圖片連結"], "")),
+      self_atk: String(getVal(row, ["self_atk"], "")),
+      self_def: String(getVal(row, ["self_def"], "")),
+      ops_atk: String(getVal(row, ["ops_atk"], "")),
+      ops_def: String(getVal(row, ["ops_def"], "")),
+      self_othr_atk: String(getVal(row, ["self_othr_atk"], "")),
+      self_othr_def: String(getVal(row, ["self_othr_def"], "")),
+      self_othr_ele: String(getVal(row, ["self_othr_ele"], "")),
+      ops_any_atk: String(getVal(row, ["ops_any_atk"], "")),
+      ops_any_def: String(getVal(row, ["ops_any_def"], "")),
+      ops_any_ele: String(getVal(row, ["ops_any_ele"], "")),
+      target: String(getVal(row, ["target", "目標"], "self")),
+      atk_aft: Number(getVal(row, ["atk_aft", "觸發後內功", "內功強度"], 0)),
+      def_aft: Number(getVal(row, ["def_aft", "觸發後衛氣", "衛氣強度"], 0)),
+      hp_aft: Number(getVal(row, ["hp_aft", "觸發後營血", "營血調養"], 0))
     };
   }
   return dict;
@@ -710,9 +746,10 @@ function updateDeck(ss, playerId, deck) {
       return { success: false, error: "牌組中同一卡牌只能攜帶一張！" };
     }
     uniqueCards[cid] = true;
-    if (!player.inventory[cid] || player.inventory[cid] < 1) {
-      return { success: false, error: "背包中無此卡牌，無法配置！" };
-    }
+    // 取消背包庫存限制，提前出完等同不出牌
+    // if (!player.inventory[cid] || player.inventory[cid] < 1) {
+    //   return { success: false, error: "背包中無此卡牌，無法配置！" };
+    // }
   }
   
   player.deck = deck;
@@ -1513,11 +1550,11 @@ function claimQrCode(ss, playerId, token) {
   
   for (var i = 1; i < qData.length; i++) {
     if (qData[i][0] === token) {
+      cardId = qData[i][2];
       if (qData[i][3] !== "active") {
-        return { success: false, error: "此兌換香箋已被使用或失效" };
+        return { success: false, error: "此兌換香箋已被使用或失效", card_id: cardId };
       }
       row = i + 1;
-      cardId = qData[i][2];
       break;
     }
   }
@@ -1534,7 +1571,7 @@ function claimQrCode(ss, playerId, token) {
   
   if (player.inventory[cardId]) {
     expGained = getSystemConfigNum(ss, "exp_qr_duplicate", 80);
-    message = "領取成功！已擁有此方劑，自動轉換為 " + expGained + " 點氣血修煉值！";
+    message = "領取成功！已擁有此方劑 [" + getCardName(ss, cardId) + "]，自動轉換為 " + expGained + " 點氣血修煉值！";
     addExpAndCheckLevel(ss, player, expGained);
   } else {
     player.inventory[cardId] = 1;
@@ -1548,7 +1585,7 @@ function claimQrCode(ss, playerId, token) {
   var freshPlayer = getPlayerRow(ss, playerId);
   delete freshPlayer.password;
   
-  return { success: true, message: message, player: freshPlayer };
+  return { success: true, message: message, player: freshPlayer, card_id: cardId };
 }
 
 // 執行百子藥櫃任務
@@ -1768,25 +1805,41 @@ function adminGenerateQr(ss, adminId, cardId) {
     return { success: false, error: "無管理權限" };
   }
   
-  if (isNormalAdmin) {
+  if (isGameAdmin) {
     var quotaSheet = ss.getSheetByName("admin_quotas");
     var qData = quotaSheet.getDataRange().getValues();
     var quotaRow = -1;
     var quotaVal = 0;
+    var isUnlimited = false;
+    var hasAnyQuotaRecord = false;
     
     for (var i = 1; i < qData.length; i++) {
-      if (qData[i][0] === adminId && qData[i][1] === cardId) {
-        quotaRow = i + 1;
-        quotaVal = Number(qData[i][2]);
-        break;
+      if (qData[i][0] === adminId) {
+        hasAnyQuotaRecord = true;
+        if (qData[i][1] === cardId) {
+          quotaRow = i + 1;
+          var rawVal = qData[i][2];
+          if (rawVal === "無限" || rawVal === "unlimited" || Number(rawVal) === -1) {
+            isUnlimited = true;
+          } else {
+            quotaVal = Number(rawVal);
+          }
+          break;
+        }
       }
     }
     
-    if (quotaRow === -1 || quotaVal <= 0) {
-      return { success: false, error: "您無此卡片的分配額度或配額已用盡！" };
+    // 如果該管理員在配額表中沒有任何設定，視為無上限配額
+    if (!hasAnyQuotaRecord) {
+      isUnlimited = true;
     }
     
-    quotaSheet.getRange(quotaRow, 3).setValue(quotaVal - 1);
+    if (!isUnlimited) {
+      if (quotaRow === -1 || quotaVal <= 0) {
+        return { success: false, error: "您無此卡片的分配額度或配額已用盡！" };
+      }
+      quotaSheet.getRange(quotaRow, 3).setValue(quotaVal - 1);
+    }
   }
   
   var token = "QR_" + new Date().getTime() + "_" + Math.floor(Math.random()*10000);
@@ -1870,13 +1923,27 @@ function adminGetQuotas(ss, adminId) {
   for (var i = 1; i < qData.length; i++) {
     if (qData[i][0] === adminId) {
       var cid = qData[i][1];
+      var rawVal = qData[i][2];
+      var qVal = (rawVal === "無限" || rawVal === "unlimited" || Number(rawVal) === -1) ? "無限" : Number(rawVal);
       list.push({
         card_id: cid,
         card_name: getCardName(ss, cid),
-        quota: Number(qData[i][2])
+        quota: qVal
       });
     }
   }
+  
+  if (list.length === 0) {
+    for (var cid in cardsDict) {
+      list.push({
+        card_id: cid,
+        card_name: cardsDict[cid].name,
+        quota: "無限"
+      });
+    }
+    return { success: true, quotas: list, is_unlimited: true };
+  }
+  
   return { success: true, quotas: list, is_unlimited: false };
 }
 

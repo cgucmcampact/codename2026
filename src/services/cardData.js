@@ -433,6 +433,17 @@ export const updateCardsFromSheets = (customCardsList) => {
   if (!customCardsList || !Array.isArray(customCardsList)) return;
   customCardsList.forEach(card => {
     if (card && card.id) {
+      let desc = card.description || "";
+      let imgUrl = card.image_url || "";
+      
+      // 防呆：如果描述裡有網址，而圖片連結不是網址（可能是真正的說明文字或空值），就直接對調
+      if (desc.includes("http") && !imgUrl.includes("http")) {
+        const temp = desc;
+        const originalDesc = (CARDS[card.id] && CARDS[card.id].description) || "";
+        desc = imgUrl || originalDesc || "";
+        imgUrl = temp;
+      }
+
       CARDS[card.id] = {
         id: card.id,
         name: card.name,
@@ -440,8 +451,8 @@ export const updateCardsFromSheets = (customCardsList) => {
         sub_type: card.sub_type,
         element: card.element || "",
         rarity: card.rarity || "",
-        description: card.description || "",
-        image_url: card.image_url || "",
+        description: desc,
+        image_url: convertGoogleDriveUrl(imgUrl),
         atk_mod: Number(card.atk_mod) || 0,
         def_mod: Number(card.def_mod) || 0,
         // 觸發條件
@@ -674,4 +685,113 @@ export const RARITY_COLORS = {
   "紫色": { border: "border-purple-950/60 hover:border-purple-600/40", text: "text-purple-400", bg: "bg-purple-950/10", shadow: "shadow-purple-900/5", glow: "border-purple-500/20 shadow-purple-500/10" },
   "金色": { border: "border-amber-700/40 hover:border-amber-500/50", text: "text-amber-400", bg: "bg-amber-950/10", shadow: "shadow-amber-900/15", glow: "border-amber-500/35 shadow-amber-500/20" }
 };
+
+// 轉換 Google Drive 預覽網址為直接下載/載入網址 (免 Google 登入驗證公開格式)
+export function convertGoogleDriveUrl(url) {
+  if (!url) return "";
+  
+  // 1. 若已經是帶有帳號路徑的 lh3 直連網址，將其轉換為免驗證公開直連格式
+  if (url.includes("lh3.googleusercontent.com/u/")) {
+    return url.replace(/lh3\.googleusercontent\.com\/u\/\d+\/d\//, "lh3.googleusercontent.com/d/");
+  }
+  
+  let fileId = "";
+  if (url.includes("drive.google.com/file/d/")) {
+    const parts = url.split("drive.google.com/file/d/");
+    if (parts[1]) {
+      fileId = parts[1].split("/")[0].split("?")[0];
+    }
+  } else if (url.includes("drive.google.com/open?id=")) {
+    const parts = url.split("drive.google.com/open?id=");
+    if (parts[1]) {
+      fileId = parts[1].split("&")[0];
+    }
+  } else if (url.includes("docs.google.com/file/d/")) {
+    const parts = url.split("docs.google.com/file/d/");
+    if (parts[1]) {
+      fileId = parts[1].split("/")[0].split("?")[0];
+    }
+  }
+  
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${fileId}`;
+  }
+  return url;
+}
+
+// 對現現有卡牌進行 Google Drive 網址轉換與防錯對調初始化
+Object.keys(CARDS).forEach(key => {
+  if (CARDS[key]) {
+    let desc = CARDS[key].description || "";
+    let imgUrl = CARDS[key].image_url || "";
+    
+    // 防呆：如果描述裡有網址，而圖片連結不是網址，就直接對調
+    if (desc.includes("http") && !imgUrl.includes("http")) {
+      const temp = desc;
+      const originalDesc = CARDS[key].description || "";
+      desc = imgUrl || originalDesc || "";
+      imgUrl = temp;
+    }
+    
+    CARDS[key].description = desc;
+    CARDS[key].image_url = convertGoogleDriveUrl(imgUrl);
+  }
+});
+
+// 初始化時防禦性地從本地 LocalStorage 恢復已快取的 Sheets 卡牌庫，以防頁面重整後卡片沒載入成功
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const cachedCards = window.localStorage.getItem('sa_cards');
+    if (cachedCards) {
+      if (cachedCards.includes("已成功加載")) {
+        window.localStorage.removeItem('sa_cards');
+        console.log("發現受污染的舊卡牌快取，已自動清除。");
+      } else {
+        updateCardsFromSheets(JSON.parse(cachedCards));
+      }
+    }
+  }
+} catch (e) {
+  console.warn("Restore cached cards failed:", e);
+}
+
+// 從文字訊息中檢測獲得的卡牌
+export function detectRewardCards(message) {
+  if (!message || typeof message !== 'string') return [];
+  const found = [];
+  
+  // 1. 先比對現有的 CARDS 資料庫
+  Object.keys(CARDS).forEach(cardId => {
+    const card = CARDS[cardId];
+    if (!card || !card.name) return;
+    // 比對卡片名稱，或者卡片 ID
+    if (message.includes(card.name) || message.includes(card.id)) {
+      if (!found.some(c => c.id === card.id)) {
+        found.push(card);
+      }
+    }
+  });
+
+  // 2. 防呆：若查無卡片但訊息包含 http 網址，將網址解析為臨時卡片圖片渲染
+  if (found.length === 0) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const matches = message.match(urlRegex);
+    if (matches && matches.length > 0) {
+      matches.forEach((url, index) => {
+        // 清除尾端的標點符號或括號
+        const cleanUrl = url.replace(/[」」』』"'\)\],\.]$/, "");
+        found.push({
+          id: `custom_card_${index}`,
+          name: "自訂草藥香箋",
+          type: "skill",
+          rarity: "金色",
+          description: "掌櫃特製的自訂卡牌，已成功載入圖片。",
+          image_url: convertGoogleDriveUrl(cleanUrl)
+        });
+      });
+    }
+  }
+
+  return found;
+}
 

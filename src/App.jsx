@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ApiService, registerBroadcastListener, postLocalBroadcast, getApiMode } from './services/api';
+import { CARDS, RARITY_COLORS, detectRewardCards, convertGoogleDriveUrl, updateCardsFromSheets } from './services/cardData';
 import PlayerHUD from './components/PlayerHUD';
 import EquipTab from './components/EquipTab';
 import SkillsTab from './components/SkillsTab';
@@ -10,13 +11,21 @@ import GameAdminPanel from './components/GameAdminPanel';
 import Login from './components/Login';
 import { 
   Swords, Sparkles, Trophy, ShieldAlert, 
-  LogOut, ShieldCheck, Settings2, Briefcase, BellRing
+  LogOut, ShieldCheck, Settings2, Briefcase, BellRing, Leaf
 } from 'lucide-react';
 
 function getPendingClaimTokenFromUrl() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('action') === 'claim') {
     return params.get('token');
+  }
+  return null;
+}
+
+function getPendingClaimCardIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('action') === 'claim') {
+    return params.get('card_id');
   }
   return null;
 }
@@ -34,7 +43,8 @@ export default function App() {
   const [player, setPlayer] = useState(null);
   const [activeTab, setActiveTab] = useState('lobby');
   const [pendingClaimToken, setPendingClaimToken] = useState(() => getPendingClaimTokenFromUrl());
-  const [claimModalMessage, setClaimModalMessage] = useState(null); // { text, type }
+  const [pendingClaimCardId, setPendingClaimCardId] = useState(() => getPendingClaimCardIdFromUrl());
+  const [claimModalMessage, setClaimModalMessage] = useState(null); // { text, type, cardId }
   
   const [receivedInvitation, setReceivedInvitation] = useState(null);
   const [alertMessage, setAlertMessage] = useState(null);
@@ -72,12 +82,14 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const action = params.get('action');
     const token = params.get('token');
+    const cardId = params.get('card_id');
     if (action === 'claim' && token) {
       setPendingClaimToken(token);
+      setPendingClaimCardId(cardId);
     }
   }, []);
 
-  // 1.5 登入成功後拉取等級生命對照表
+  // 1.5 登入成功後拉取等級生命對照表與卡牌庫
   useEffect(() => {
     if (player) {
       ApiService.getLevelConfig(player.id)
@@ -87,6 +99,20 @@ export default function App() {
           }
         })
         .catch(err => console.warn('Fetch level config failed, using local fallback', err));
+
+      ApiService.getCards(player.id)
+        .then(res => {
+          if (res.success && res.cards) {
+            console.log('--- 雲端同步卡牌庫 ---', res.cards);
+            updateCardsFromSheets(res.cards);
+            localStorage.setItem('sa_cards', JSON.stringify(res.cards));
+          }
+        })
+        .catch(err => {
+          console.warn('Sync custom cards failed, using cache', err);
+          const cached = localStorage.getItem('sa_cards');
+          if (cached) updateCardsFromSheets(JSON.parse(cached));
+        });
     }
   }, [player]);
 
@@ -96,7 +122,7 @@ export default function App() {
 
     if (player) {
       if (pendingClaimToken) {
-        handleAutoClaimToken(pendingClaimToken);
+        handleAutoClaimToken(pendingClaimToken, pendingClaimCardId);
       }
       
       invitationCheckInterval.current = setInterval(() => {
@@ -220,13 +246,14 @@ export default function App() {
     }
   }
 
-  // 自動領取 URL 傳入的 token
-  async function handleAutoClaimToken(token) {
+  async function handleAutoClaimToken(token, urlCardId) {
     if (!player || !token) return;
     setPendingClaimToken(null);
+    setPendingClaimCardId(null);
     const url = new URL(window.location.href);
     url.searchParams.delete('action');
     url.searchParams.delete('token');
+    url.searchParams.delete('card_id');
     window.history.replaceState({}, document.title, url.pathname);
 
     try {
@@ -234,7 +261,8 @@ export default function App() {
       if (res.success) {
         setClaimModalMessage({
           type: 'success',
-          text: `領取成功！獲得：${res.message || '獎勵內容'}`
+          text: `${res.message || '領取成功！'}`,
+          cardId: res.card_id || urlCardId
         });
         const playerRes = await ApiService.getPlayerData(player.id);
         if (playerRes.success) {
@@ -243,13 +271,15 @@ export default function App() {
       } else {
         setClaimModalMessage({
           type: 'error',
-          text: res.message || '領取失敗'
+          text: res.error || res.message || '領取失敗',
+          cardId: res.card_id || urlCardId
         });
       }
     } catch (err) {
       setClaimModalMessage({
         type: 'error',
-        text: err.message || '領取失敗，請稍後再試'
+        text: err.message || '領取失敗，請稍後再試',
+        cardId: err.card_id || urlCardId
       });
     }
   }
@@ -339,9 +369,11 @@ export default function App() {
     );
   }
 
+  const isInBattle = activeTab === 'battle' && activeBattleId;
+
   return (
     <div className="tcm-lobby-container">
-      <div className="tcm-lobby-shell glass-panel glass-panel-neon">
+      <div className={`tcm-lobby-shell glass-panel glass-panel-neon ${isInBattle ? 'tcm-battle-mode-shell' : ''}`}>
         
         {/* 大廳頁首 */}
         <header className="tcm-lobby-header flex flex-col gap-4">
@@ -395,11 +427,13 @@ export default function App() {
                 )}
               </div>
               
-              <div className="text-center w-full">
-                <h1 className="text-2xl md:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-600 font-mono">
-                  {TAB_TITLES[activeTab] || '背包'}
-                </h1>
-              </div>
+              {!(activeTab === 'battle' && activeBattleId) && (
+                <div className="text-center w-full">
+                  <h1 className="text-2xl md:text-3xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-600 font-mono">
+                    {TAB_TITLES[activeTab] || '背包'}
+                  </h1>
+                </div>
+              )}
             </div>
           )}
         </header>
@@ -531,9 +565,11 @@ export default function App() {
         </main>
 
         {/* 頁尾 */}
-        <footer className="py-4 border-t border-amber-955/30 text-center text-xs text-gray-500 font-serif bg-black/10 mt-4">
-          <p>© 2026 百草醫館修煉場 Apothecary Training Ground.</p>
-        </footer>
+        {!isInBattle && (
+          <footer className="py-4 border-t border-amber-955/30 text-center text-xs text-gray-500 font-serif bg-black/10 mt-4">
+            <p>© 2026 百草醫館修煉場 Apothecary Training Ground.</p>
+          </footer>
+        )}
 
       </div>
 
@@ -585,21 +621,70 @@ export default function App() {
       {/* ==================== 浮動視窗：QR Code 領取結果 ==================== */}
       {claimModalMessage && (
         <div className="tcm-floating-invite-overlay">
-          <div className="tcm-floating-invite-card glass-panel glass-panel-neon p-6 space-y-4 text-center">
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-bold text-gray-200">
-                {claimModalMessage.type === 'success' ? '領取成功' : '領取失敗'}
+          <div className="tcm-floating-invite-card tcm-claim-result-card glass-panel glass-panel-neon p-4 text-center">
+            <div className="text-center space-y-1">
+              <h3 className="text-sm font-bold text-gray-200">
+                {claimModalMessage.type === 'success' ? '🎉 領取成功' : '❌ 領取失敗'}
               </h3>
-              <p className="text-xs text-gray-400 leading-relaxed">{claimModalMessage.text}</p>
+              <p className="text-[10px] text-gray-400 leading-relaxed">{claimModalMessage.text}</p>
             </div>
 
-            <div className="pt-2">
+            {/* 卡片圖示與詳情顯示 */}
+            {(() => {
+              let rewardCards = [];
+              if (claimModalMessage.cardId && CARDS[claimModalMessage.cardId]) {
+                rewardCards = [CARDS[claimModalMessage.cardId]];
+              } else {
+                rewardCards = detectRewardCards(claimModalMessage.text);
+              }
+              
+              if (rewardCards.length === 0) return null;
+              return (
+                <div className="tcm-claim-card-scroll-area">
+                  {rewardCards.map(card => {
+                    const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
+                    return (
+                      <div 
+                        key={card.id}
+                        className={`game-card border ${cardRarity.border} ${cardRarity.shadow} relative overflow-hidden bg-black/55 rounded-lg mx-auto flex-shrink-0`}
+                        style={{ width: '180px', height: '80px', minHeight: 'auto', padding: '0' }}
+                      >
+                        {card.image_url ? (
+                          <img 
+                            src={convertGoogleDriveUrl(card.image_url)} 
+                            alt={card.name} 
+                            className="absolute inset-0 w-full h-full object-cover flex-shrink-0"
+                            style={{ objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-amber-950/10 to-emerald-950/10 flex items-center justify-center">
+                            <Leaf size={24} className="text-amber-600/30 animate-pulse" />
+                          </div>
+                        )}
+                        <div 
+                          className="absolute bottom-0 left-0 right-0 bg-black/75 py-1 px-1.5 flex flex-col items-center justify-center text-center border-t border-amber-500/10 leading-none z-10"
+                          style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+                        >
+                          <h4 className={`text-[10px] font-black font-serif ${cardRarity.text} leading-tight`}>{card.name}</h4>
+                          <span className="text-[7px] uppercase tracking-widest text-amber-700/80 font-mono font-bold mt-0.5">
+                            {card.rarity}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            <div className="pt-1">
               <button
                 id="btn-close-claim-modal"
                 onClick={() => setClaimModalMessage(null)}
-                className="btn-neon px-6 py-2 text-xs font-bold"
+                className="btn-neon w-full py-1.5 text-xs font-bold"
+                style={{ minHeight: '32px' }}
               >
-                關閉
+                收下獎勵
               </button>
             </div>
           </div>
