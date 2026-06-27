@@ -454,7 +454,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
       <div className="w-full max-w-[340px] mx-auto" style={{ marginTop: '16px' }}>
         {gearItems.length === 0 ? (
           <div className="w-full flex flex-col gap-2">
-            <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-between items-center px-1">
+            <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-center items-center gap-3 px-1" style={{ marginBottom: '12px', width: '100%' }}>
               <span>
                 {activeSlot
                   ? `可選配裝備 (對應: ${SLOT_RENDER_CONFIG.find(c => c.slot === activeSlot)?.label})`
@@ -471,7 +471,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
           </div>
         ) : (
           <div className="w-full flex flex-col items-center">
-            <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-between items-center px-1" style={{ marginBottom: '12px', width: '100%' }}>
+            <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-center items-center gap-3 px-1" style={{ marginBottom: '12px', width: '100%' }}>
               <span>
                 {activeSlot
                   ? `可選配裝備 (對應: ${SLOT_RENDER_CONFIG.find(c => c.slot === activeSlot)?.label})`
@@ -518,11 +518,10 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                       </span>
                     </div>
 
-                    {/* 裝備卡主體 - 圓形 + 下方重疊標籤 (符合附圖右側) */}
-                    <div className="relative my-3 flex flex-col items-center select-none pb-2">
-                      {/* 圓形裝備圖片 */}
+                    {/* 裝備卡主體 - 圓形圖片 */}
+                    <div className="my-2 shrink-0">
                       <div
-                        className={`rounded-full overflow-hidden border-2 ${cardRarity.border} ${cardRarity.shadow} bg-black/40 flex items-center justify-center shrink-0`}
+                        className={`rounded-full overflow-hidden border-2 ${cardRarity.border} ${cardRarity.shadow} bg-black/40 flex items-center justify-center`}
                         style={{ width: '96px', height: '96px', position: 'relative' }}
                       >
                         {currentCard.image_url ? (
@@ -538,16 +537,14 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                           <Leaf size={28} className="text-amber-600/20 animate-pulse" />
                         )}
                       </div>
-
-                      {/* 下方稍微重疊的矩形名稱標籤 */}
-                      <div className="absolute -bottom-1.5 px-3 py-0.5 bg-amber-955 border border-amber-500/40 text-amber-400 font-bold text-[10px] rounded shadow-md whitespace-nowrap text-center z-10">
-                        <span className={`font-serif tracking-wider ${cardRarity.text}`}>
-                          {currentCard.name}
-                        </span>
-                      </div>
                     </div>
 
-                    <div className="card-desc line-clamp-2">
+                    {/* 卡牌名稱 - 作為獨立元素 */}
+                    <h4 className="card-title my-1">
+                      {currentCard.name}
+                    </h4>
+
+                    <div className="card-desc">
                       {currentCard.description}
                     </div>
 
@@ -751,8 +748,16 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                   </div>
                 )}
               </div>
-              <div className="tcm-card-detail-close-tip">
-                (點擊任意空白處即可關閉)
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => setActiveCardDetail(null)}
+                  className="btn-neon px-6 py-1.5 text-xs font-bold"
+                >
+                  關閉
+                </button>
+              </div>
+              <div className="tcm-card-detail-close-tip mt-2">
+                (點擊任意空白處或此按鈕即可關閉)
               </div>
             </div>
           </div>,

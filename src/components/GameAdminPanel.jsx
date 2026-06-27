@@ -106,12 +106,22 @@ export default function GameAdminPanel({ player, onPlayerUpdate }) {
           quotaMap[q.card_id] = q.quota;
         });
 
-        const fullList = Object.keys(CARDS).map(cid => ({
-          card_id: cid,
-          card_name: CARDS[cid].name,
-          type: CARDS[cid].type === 'equipment' ? '裝備' : '技能',
-          quota: quotaMap[cid] !== undefined ? quotaMap[cid] : 0
-        }));
+        const fullList = Object.keys(CARDS).map(cid => {
+          const card = CARDS[cid];
+          let isEquip = false;
+          if (card && card.type) {
+            const t = card.type.trim().toLowerCase();
+            isEquip = (t === 'equipment' || t === '裝備');
+          } else if (cid && typeof cid === 'string') {
+            isEquip = cid.toLowerCase().startsWith('equip');
+          }
+          return {
+            card_id: cid,
+            card_name: card?.name || cid,
+            type: isEquip ? '裝備' : '技能',
+            quota: quotaMap[cid] !== undefined ? quotaMap[cid] : 0
+          };
+        });
 
         setStaffQuotas(fullList);
         setSuccess(`查詢成功，已載入工作人員 [ ${staffId} ] 的卡牌配額！`);

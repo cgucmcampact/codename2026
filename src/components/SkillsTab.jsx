@@ -412,7 +412,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
 
       {/* 2. 下方：Slider/Carousel 庫存方劑輪播 */}
       <div className="w-full max-w-[340px] mx-auto" style={{ marginTop: '8px' }}>
-        <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-between items-center px-1" style={{ marginBottom: '12px' }}>
+        <h3 className="text-[10px] font-bold text-gray-400 font-serif border-b border-amber-900/20 pb-1.5 flex justify-center items-center gap-3 px-1" style={{ marginBottom: '12px' }}>
           <span>技能清單</span>
           {inventorySkills.length > 0 && (
             <span className="text-[9px] text-gray-500 font-mono">
@@ -462,9 +462,9 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                       </span>
                     </div>
 
-                    {/* 技能卡主體 - 直立長方形 (符合附圖左側) */}
+                    {/* 技能卡主體 - 直立長方形圖片 */}
                     <div
-                      className={`rounded-lg overflow-hidden border-2 ${cardRarity.border} ${cardRarity.shadow} bg-black/40 shrink-0 my-2 flex flex-col justify-between`}
+                      className={`rounded-lg overflow-hidden border-2 ${cardRarity.border} ${cardRarity.shadow} bg-black/40 shrink-0 my-2`}
                       style={{ width: '110px', height: '157px', position: 'relative' }}
                     >
                       {/* 技能圖片鋪滿與 Fallback Leaf 圖示 */}
@@ -482,16 +482,14 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                           <Leaf size={28} className="text-amber-600/20 animate-pulse" />
                         )}
                       </div>
-
-                      {/* 底部卡片名稱區 (重疊在內部底部) */}
-                      <div className="absolute bottom-0 left-0 right-0 py-1.5 text-center bg-black/75 border-t border-amber-500/20 backdrop-blur-[1px] z-10">
-                        <span className={`text-[10px] font-black font-serif tracking-wider ${cardRarity.text}`}>
-                          {currentCard.name}
-                        </span>
-                      </div>
                     </div>
 
-                    <div className="card-desc line-clamp-2">
+                    {/* 卡牌名稱 - 作為獨立元素 */}
+                    <h4 className="card-title my-1">
+                      {currentCard.name}
+                    </h4>
+
+                    <div className="card-desc">
                       {currentCard.description}
                     </div>
 
@@ -757,8 +755,16 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                   );
                 })()}
               </div>
-              <div className="tcm-card-detail-close-tip">
-                (點擊任意空白處即可關閉)
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => setActiveCardDetail(null)}
+                  className="btn-neon px-6 py-1.5 text-xs font-bold"
+                >
+                  關閉
+                </button>
+              </div>
+              <div className="tcm-card-detail-close-tip mt-2">
+                (點擊任意空白處或此按鈕即可關閉)
               </div>
             </div>
           </div>,

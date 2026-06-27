@@ -742,8 +742,16 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
               );
             })()}
           </div>
-          <div className="tcm-card-detail-close-tip">
-            (點擊任意空白處即可關閉)
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => setActiveCardDetail(null)}
+              className="btn-neon px-6 py-1.5 text-xs font-bold"
+            >
+              關閉
+            </button>
+          </div>
+          <div className="tcm-card-detail-close-tip mt-2">
+            (點擊任意空白處或此按鈕即可關閉)
           </div>
         </div>
       </div>,

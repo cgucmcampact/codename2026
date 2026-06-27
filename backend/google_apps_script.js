@@ -204,7 +204,7 @@ function initDatabase() {
   if (oldTasksConfigSheet) {
     ss.deleteSheet(oldTasksConfigSheet);
   }
-  var tasksConfigSheet = getOrCreateSheet(ss, "tasks_config", ["grid_index", "name", "description", "reward_card_id", "detail"]);
+  var tasksConfigSheet = getOrCreateSheet(ss, "tasks_config", ["grid_index", "name", "description", "reward_card_id", "detail", "url"]);
   if (tasksConfigSheet.getLastRow() <= 1) {
     var defaultTasksConfig = [
       [0, "當歸", "辨識當歸切片，完成當歸補血湯配藥。", "skill_card_01", "當歸藥理常識：味甘、辛，性溫。歸肝、心、脾經。功能補血活血、調經止痛、潤腸通便。挑戰規則：請向執藥師辨識當歸與假當歸切片，並親自完成補血湯配藥即可通關。"],
@@ -475,7 +475,8 @@ function getTasksConfigList(ss) {
       name: String(data[i][1]),
       description: String(data[i][2]),
       reward_card_id: String(data[i][3] || ""),
-      detail: String(data[i][4] || "詳細小任務規則及通關代碼，請洽工作人員。")
+      detail: String(data[i][4] || "詳細小任務規則及通關代碼，請洽工作人員。"),
+      url: data[i].length > 5 ? String(data[i][5] || "") : ""
     });
   }
   return { success: true, tasks: list };

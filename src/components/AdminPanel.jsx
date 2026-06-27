@@ -186,6 +186,16 @@ export default function AdminPanel({ player }) {
                 }))).map(q => {
                   const card = CARDS[q.card_id];
                   const hasQuota = q.quota === '無限' || Number(q.quota) > 0;
+
+                  // 判斷是否為裝備卡
+                  let isEquip = false;
+                  if (card && card.type) {
+                    const typeStr = card.type.trim().toLowerCase();
+                    isEquip = (typeStr === 'equipment' || typeStr === '裝備');
+                  } else if (q.card_id && typeof q.card_id === 'string') {
+                    isEquip = q.card_id.toLowerCase().startsWith('equip');
+                  }
+
                   return (
                     <option
                       key={q.card_id}
@@ -193,7 +203,7 @@ export default function AdminPanel({ player }) {
                       disabled={!hasQuota}
                       className={!hasQuota ? 'text-gray-600' : ''}
                     >
-                      {q.card_name} ({card?.type === 'equipment' ? '裝備' : '技能'}) - 剩餘額度: {q.quota}
+                      {q.card_name} ({isEquip ? '裝備' : '技能'}) - 剩餘額度: {q.quota}
                     </option>
                   );
                 })}
@@ -337,7 +347,17 @@ export default function AdminPanel({ player }) {
                 {selectedDetailTask.detail}
               </div>
             </div>
-            <div className="pt-2">
+            <div className="pt-2 flex justify-center gap-3">
+              {selectedDetailTask.url && (
+                <a
+                  href={selectedDetailTask.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline px-6 py-2 text-xs font-bold flex items-center justify-center gap-1.5"
+                >
+                  查看示範/素材
+                </a>
+              )}
               <button
                 onClick={() => setSelectedDetailTask(null)}
                 className="btn-neon px-6 py-2 text-xs font-bold"

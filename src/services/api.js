@@ -14,7 +14,7 @@ export function registerBroadcastListener(callback) {
     localChannel.addEventListener('message', handler);
     return () => localChannel.removeEventListener('message', handler);
   }
-  return () => {};
+  return () => { };
 }
 
 export function postLocalBroadcast(data) {
@@ -34,25 +34,24 @@ export function setApiMode(mode) {
 
 // 中醫百草任務本地預設配置
 const DEFAULT_TASKS_CONFIG = [
-  { grid_index: 0, name: '當歸', description: '辨識當歸切片，完成當歸補血湯配藥。', reward_card_id: 'skill_card_01' },
-  { grid_index: 1, name: '黃耆', description: '體驗百草醫館黃耆煎藥，學習溫補脾胃衛氣。', reward_card_id: '' },
-  { grid_index: 2, name: '甘草', description: '調和諸藥！在人體衛氣模型上尋找甘草所對應的脾經穴位。', reward_card_id: 'skill_card_03' },
-  { grid_index: 3, name: '人參', description: '大補元氣！完成人參切片與生脈飲的沖泡。', reward_card_id: '' },
-  { grid_index: 4, name: '川芎', description: '活血行氣！辨識川芎外觀與其氣味特色。', reward_card_id: 'equip_head_02' },
-  { grid_index: 5, name: '白芍', description: '柔肝止痛！製作一劑白芍與甘草的調和藥包。', reward_card_id: '' },
-  { grid_index: 6, name: '熟地', description: '滋陰補血！觀察九蒸九曬熟地黃的製作過程。', reward_card_id: 'skill_card_05' },
-  { grid_index: 7, name: '柴胡', description: '疏肝解熱！完成柴胡葛根湯的調配。', reward_card_id: '' },
-  { grid_index: 8, name: '半夏', description: '燥濕化痰！學習法半夏與生半夏的炮製區別。', reward_card_id: 'equip_body_03' },
-  { grid_index: 9, name: '茯苓', description: '利水滲濕！辨別茯苓塊與茯苓片的差別。', reward_card_id: '' },
-  { grid_index: 10, name: '陳皮', description: '理氣健脾！體驗百草堂三年老陳皮的泡茶修煉。', reward_card_id: 'skill_card_08' },
-  { grid_index: 11, name: '白朮', description: '健脾益氣！完成白朮與山藥的藥膳配製。', reward_card_id: '' },
-  { grid_index: 12, name: '枸杞', description: '滋補肝腎，明目！完成枸杞與菊花茶的搭配。', reward_card_id: 'equip_hands_03' },
-  { grid_index: 13, name: '杜仲', description: '補肝腎，強筋骨！學習杜仲折斷時的絲絡辨識。', reward_card_id: '' },
-  { grid_index: 14, name: '砂仁', description: '化濕開胃，溫脾止瀉！體驗砂仁研碎時的芳香。', reward_card_id: 'skill_card_10' },
-  { grid_index: 15, name: '麥冬', description: '養陰生津，潤肺清心！調製一劑麥冬清涼飲。', reward_card_id: '' }
+  { grid_index: 0, name: '表情管理', description: '這樣太危險 飛太遠 對你做鬼臉 我們飛太遠', reward_card_id: '', url: '' },
+  { grid_index: 1, name: '密碼破譯', description: '快點快點，要爆拉!快點破譯出終極密碼', reward_card_id: '', url: '' },
+  { grid_index: 2, name: '靜默時序', description: '考驗默契的時候到了，大家準備好了嗎?', reward_card_id: '', url: '' },
+  { grid_index: 3, name: '痕跡鑑定', description: '大補元氣！完成人參切片與生脈飲的沖泡。', reward_card_id: '', url: '' },
+  { grid_index: 4, name: '混淆視聽', description: '：「我剛剛吃生魚片被嗆到」：「真的喔，他嗆你什麼」：「...已讀亂回ㄟ」', reward_card_id: '', url: '' },
+  { grid_index: 5, name: '社交訓練', description: '帥，好帥，哥哥腹肌有八塊', reward_card_id: '', url: '' },
+  { grid_index: 6, name: '矛盾螺旋', description: '🤙:「7」', reward_card_id: '', url: '' },
+  { grid_index: 7, name: '絕密檔案', description: '手陽明仲英大腸經', reward_card_id: '', url: '' },
+  { grid_index: 8, name: '明辨是非', description: '恐龍是一隻呆腦獸，呆腦獸-dinosaur', reward_card_id: '', url: '' },
+  { grid_index: 9, name: '秒控試煉', description: '大魚和小魚在海裡聊天。大魚問小魚：「欸，你知道我們的記憶力只有三秒嗎？」小魚回答：「真的假的？」大魚疑惑地說：「蛤？什麼東西真的假的？」', reward_card_id: '', url: '' },
+  { grid_index: 10, name: '步步逼近', description: '一拐二拐三拐', reward_card_id: '', url: '' },
+  { grid_index: 11, name: '終極推理', description: '究竟是先有蛋還是先有雞?', reward_card_id: '', url: '' },
+  { grid_index: 12, name: '證據鍊條', description: '沒有錯就是接龍', reward_card_id: '', url: '' },
+  { grid_index: 13, name: '敏捷訓練', description: '跟不上我的速度吧嘿嘿', reward_card_id: '', url: '' },
+  { grid_index: 14, name: '現場對峙', description: '棒打老虎雞吃蟲', reward_card_id: '', url: '' },
+  { grid_index: 15, name: '抓小偷', description: '誰是薪水小偷?', reward_card_id: '', url: '' }
 ];
 
-// ----------------- 本地模擬服務 (Local Mock) -----------------
 const PRESET_ACCOUNTS = {
   admin: { id: 'admin', name: '系統大掌櫃', role: 'admin', level: 99, exp: 99999, password: 'admin123' },
   staff: { id: 'staff', name: '分藥小掌櫃', role: 'game_admin', level: 99, exp: 99999, password: 'admin123' },
@@ -77,14 +76,14 @@ function initLocalDatabase() {
         'skill_card_04': 1, 'skill_card_05': 1, 'skill_card_06': 1,
         'equip_head_01': 1, 'equip_body_02': 1, 'equip_hands_02': 1, 'equip_feet_02': 1
       };
-      
+
       const defaultTasks = {};
       for (let k = 0; k < 16; k++) {
         defaultTasks[k] = { status: 'available', password: '', completed: false };
       }
       preset.tasks_progress = defaultTasks;
       preset.last_active = 0;
-      
+
       localStorage.setItem(key, JSON.stringify(preset));
     }
   });
@@ -218,7 +217,7 @@ function calculateLocalStats(player) {
   const baseHp = getLocalBaseHpByLevel(level);
   let bonusAtk = 0;
   let bonusDef = 0;
-  
+
   const slots = ['head', 'body', 'hands', 'feet', 'sub1', 'sub2'];
   slots.forEach(slot => {
     const cardId = player.equipped?.[slot];
@@ -245,10 +244,10 @@ const LocalMockService = {
     if (!isEnabled && player.role !== 'game_admin' && player.role !== 'admin') {
       throw new Error('伺服器維護中，目前玩家暫時無法登入遊玩。');
     }
-    
+
     player.last_active = Date.now();
     saveLocalPlayer(username, player);
-    
+
     const safePlayer = { ...player };
     delete safePlayer.password;
     return { success: true, player: safePlayer, system_login_enabled: isEnabled };
@@ -261,7 +260,7 @@ const LocalMockService = {
     if (!player) throw new Error('玩家不存在');
     player.last_active = Date.now();
     saveLocalPlayer(playerId, player);
-    
+
     const safePlayer = { ...player };
     delete safePlayer.password;
     return { success: true, player: safePlayer };
@@ -271,7 +270,7 @@ const LocalMockService = {
     checkLocalForceLogout(playerId);
     const player = getLocalPlayer(playerId);
     if (!player) throw new Error('玩家不存在');
-    
+
     const slots = ['head', 'body', 'hands', 'feet', 'sub1', 'sub2'];
     for (let slot of slots) {
       const cardId = equipped[slot];
@@ -279,11 +278,11 @@ const LocalMockService = {
         throw new Error('你的背包中沒有此裝備卡！');
       }
     }
-    
+
     player.equipped = equipped;
     player.last_active = Date.now();
     saveLocalPlayer(playerId, player);
-    
+
     const safePlayer = { ...player };
     delete safePlayer.password;
     return { success: true, player: safePlayer };
@@ -293,11 +292,11 @@ const LocalMockService = {
     checkLocalForceLogout(playerId);
     const player = getLocalPlayer(playerId);
     if (!player) throw new Error('玩家不存在');
-    
+
     if (!Array.isArray(deck) || deck.length !== 10) {
       throw new Error('牌組卡槽必須為 10 個！');
     }
-    
+
     const uniqueCards = {};
     for (let cid of deck) {
       if (cid === "") continue; // 容許空白卡槽
@@ -310,11 +309,11 @@ const LocalMockService = {
       //   throw new Error('背包中無此卡牌，無法配置！');
       //   }
     }
-    
+
     player.deck = deck;
     player.last_active = Date.now();
     saveLocalPlayer(playerId, player);
-    
+
     const safePlayer = { ...player };
     delete safePlayer.password;
     return { success: true, player: safePlayer };
@@ -325,7 +324,7 @@ const LocalMockService = {
     checkLocalForceLogout(playerId);
     const onlineList = [];
     const now = Date.now();
-    
+
     Object.keys(PRESET_ACCOUNTS).forEach(id => {
       if (id.toLowerCase() !== playerId.toLowerCase() && id !== 'admin' && id !== 'staff') {
         const p = getLocalPlayer(id);
@@ -350,7 +349,7 @@ const LocalMockService = {
   invitePlayer: async (senderId, receiverId) => {
     checkLocalForceLogout(senderId);
     const invs = JSON.parse(localStorage.getItem('sa_invitations') || '[]');
-    
+
     // 檢查是否已存在 pending 的相同邀請
     const existing = invs.find(i => i.sender_id === senderId && i.receiver_id === receiverId && i.status === 'pending');
     if (existing) {
@@ -358,7 +357,7 @@ const LocalMockService = {
     }
 
     const invId = `INV_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-    
+
     // 清除該發送者的舊邀請
     const filtered = invs.map(i => {
       if (i.sender_id === senderId && i.status === 'pending') {
@@ -374,9 +373,9 @@ const LocalMockService = {
       status: 'pending',
       created_at: Date.now()
     });
-    
+
     localStorage.setItem('sa_invitations', JSON.stringify(filtered));
-    
+
     // 本地多視窗廣播通知
     postLocalBroadcast({
       type: 'INVITE',
@@ -420,12 +419,12 @@ const LocalMockService = {
         }
         if (!bId) {
           const battles = JSON.parse(localStorage.getItem('sa_battles') || '[]');
-          const activeBattle = [...battles].reverse().find(b => 
+          const activeBattle = [...battles].reverse().find(b =>
             (b.p1_id === playerId || b.p2_id === playerId) && b.status === 'active'
           );
           bId = activeBattle ? activeBattle.battle_id : '';
         }
-        
+
         outboundAccepted = {
           invitation_id: inv.invitation_id,
           battle_id: bId
@@ -434,7 +433,7 @@ const LocalMockService = {
         break;
       }
     }
-    
+
     localStorage.setItem('sa_invitations', JSON.stringify(invs));
     return { success: true, inbound, outbound_accepted: outboundAccepted };
   },
@@ -444,7 +443,7 @@ const LocalMockService = {
     const invs = JSON.parse(localStorage.getItem('sa_invitations') || '[]');
     const now = Date.now();
     const inv = invs.find(i => i.invitation_id === invId && i.status === 'pending');
-    
+
     if (!inv || now - inv.created_at > 30000) {
       if (inv) {
         inv.status = 'expired';
@@ -467,7 +466,7 @@ const LocalMockService = {
     const p2Stats = calculateLocalStats(p2);
 
     const battleId = `BAT_${Date.now()}`;
-    
+
     inv.status = `accepted:${battleId}`;
     localStorage.setItem('sa_invitations', JSON.stringify(invs));
 
@@ -537,7 +536,7 @@ const LocalMockService = {
     if (!battle) throw new Error('找不到該對戰房');
 
     const now = Date.now();
-    
+
     // 1. 分段出牌超時自動結算判定 (21秒)
     if (battle.status === 'active') {
       if (battle.p1_action === 'waiting') {
@@ -578,7 +577,7 @@ const LocalMockService = {
     const battles = JSON.parse(localStorage.getItem('sa_battles') || '[]');
     const battleIndex = battles.findIndex(b => b.battle_id === battleId);
     if (battleIndex === -1) throw new Error('對戰不存在');
-    
+
     const battle = battles[battleIndex];
     if (battle.status !== 'active') throw new Error('對戰已結束');
 
@@ -760,7 +759,7 @@ const LocalMockService = {
     }
 
     saveLocalPlayer(playerId, player);
-    
+
     // 同步更新 sa_active_tasks
     const activeTasks = JSON.parse(localStorage.getItem('sa_active_tasks') || '[]');
     const existingIdx = activeTasks.findIndex(t => t.player_id === playerId && Number(t.grid_index) === Number(gridIndex));
@@ -768,7 +767,7 @@ const LocalMockService = {
       activeTasks[existingIdx].status = 'completed';
       localStorage.setItem('sa_active_tasks', JSON.stringify(activeTasks));
     }
-    
+
     const safePlayer = getLocalPlayer(playerId);
     delete safePlayer.password;
     return { success: true, message: rewardMessage, player: safePlayer };
@@ -813,7 +812,7 @@ const LocalMockService = {
 
     const activeTasks = JSON.parse(localStorage.getItem('sa_active_tasks') || '[]');
     const playerTasks = [];
-    
+
     // 建立 playerMap 以獲取 nickname
     const playerMap = {};
     for (let i = 0; i < localStorage.length; i++) {
@@ -826,7 +825,7 @@ const LocalMockService = {
             if (p) {
               playerMap[p.id.toLowerCase()] = p.name;
             }
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     }
@@ -884,12 +883,12 @@ const LocalMockService = {
       throw new Error('僅限大掌櫃操作');
     }
     localStorage.setItem('sa_game_enabled', enabled ? 'true' : 'false');
-    
+
     // 如果系統被關閉 (enabled === false)，在本地也進行強踢與清除
     if (!enabled) {
       clearLocalActiveRecordsAndTasks();
     }
-    
+
     return { success: true, game_enabled: enabled };
   },
 
@@ -965,7 +964,7 @@ function clearLocalActiveRecordsAndTasks() {
   localStorage.setItem('sa_battles', '[]');
   localStorage.setItem('sa_invitations', '[]');
   localStorage.setItem('sa_active_tasks', '[]');
-  
+
   // 清除所有普通玩家身上為 active 的任務狀態
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -1054,14 +1053,14 @@ function resolveLocalRound(battle) {
 
   const p1Log = `[${battle.p1_id}] 點刺/投藥「${p1CardNames.join(' + ')}」，內功強度達 ${p1RoundAtk}，衛氣達 ${p1RoundDef}`;
   const p2Log = `[${battle.p2_id}] 點刺/投藥「${p2CardNames.join(' + ')}」，內功強度達 ${p2RoundAtk}，衛氣達 ${p2RoundDef}`;
-  
+
   const p1SkillNet = effects.p1HpMod;
   const p2SkillNet = effects.p2HpMod;
   const p1SkillLog = p1SkillNet >= 0 ? `回復 ${p1SkillNet} 營血` : `衛氣營血受損 ${Math.abs(p1SkillNet)}`;
   const p2SkillLog = p2SkillNet >= 0 ? `回復 ${p2SkillNet} 營血` : `衛氣營血受損 ${Math.abs(p2SkillNet)}`;
 
   const damageLog = `結算: [${battle.p1_id}] 受到傷害: ${physDmgToP1 + (p1SkillNet < 0 ? Math.abs(p1SkillNet) : 0)} (穴位刺激 ${physDmgToP1} + 技能 ${p1SkillNet < 0 ? Math.abs(p1SkillNet) : 0}，回復 ${p1SkillNet > 0 ? p1SkillNet : 0} 營血); ` +
-                    `[${battle.p2_id}] 受到傷害: ${physDmgToP2 + (p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0)} (穴位刺激 ${physDmgToP2} + 技能 ${p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0}，回復 ${p2SkillNet > 0 ? p2SkillNet : 0} 營血)`;
+    `[${battle.p2_id}] 受到傷害: ${physDmgToP2 + (p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0)} (穴位刺激 ${physDmgToP2} + 技能 ${p2SkillNet < 0 ? Math.abs(p2SkillNet) : 0}，回復 ${p2SkillNet > 0 ? p2SkillNet : 0} 營血)`;
 
   // 記錄該回合雙方出牌到獨立欄位中
   const currentRound = battle.round_number;
@@ -1123,7 +1122,7 @@ function unlockLocalAdjacentGrids(tasks, index) {
   if (row < 3) adj.push((row + 1) * 4 + col);
   if (col > 0) adj.push(row * 4 + (col - 1));
   if (col < 3) adj.push(row * 4 + (col + 1));
-  
+
   adj.forEach(i => {
     const idxStr = String(i);
     if (tasks[idxStr] && tasks[idxStr].status === 'locked') {
@@ -1139,10 +1138,10 @@ function checkLocalBingoLines(tasks) {
   }
   let lines = 0;
   for (let r = 0; r < 4; r++) {
-    if (grid[r*4] && grid[r*4+1] && grid[r*4+2] && grid[r*4+3]) lines++;
+    if (grid[r * 4] && grid[r * 4 + 1] && grid[r * 4 + 2] && grid[r * 4 + 3]) lines++;
   }
   for (let c = 0; c < 4; c++) {
-    if (grid[c] && grid[4+c] && grid[8+c] && grid[12+c]) lines++;
+    if (grid[c] && grid[4 + c] && grid[8 + c] && grid[12 + c]) lines++;
   }
   if (grid[0] && grid[5] && grid[10] && grid[15]) lines++;
   if (grid[3] && grid[6] && grid[9] && grid[12]) lines++;
@@ -1166,7 +1165,7 @@ async function callGasApi(action, payload = {}, requesterId = null) {
   if (!url) {
     throw new Error('未設定 Google Script URL！請於模式設定中填寫或建立 .env 檔案。');
   }
-  
+
   // GAS Web App 轉向處理 (使用 POST 且 payload 轉換成 text/plain 避免 preflight 拒絕)
   const body = {
     action,
