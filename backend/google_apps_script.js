@@ -31,7 +31,9 @@ function initDatabase() {
     ["exp_battle_draw", "30"],
     ["exp_qr_duplicate", "80"],
     ["exp_bingo_line", "150"],
-    ["exp_bingo_duplicate", "50"]
+    ["exp_bingo_duplicate", "50"],
+    ["exp_card_acquire", "0"],
+    ["bingo_reward_card", "random"]
   ];
 
   for (var c = 0; c < defaultConfigValues.length; c++) {
@@ -1576,7 +1578,13 @@ function claimQrCode(ss, playerId, token) {
     addExpAndCheckLevel(ss, player, expGained);
   } else {
     player.inventory[cardId] = 1;
-    message = "領取成功！獲得卡牌: " + getCardName(ss, cardId);
+    var expAcquire = getSystemConfigNum(ss, "exp_card_acquire", 0);
+    if (expAcquire > 0) {
+      message = "領取成功！獲得卡牌: " + getCardName(ss, cardId) + "，獲得初次收集獎勵 " + expAcquire + " 點氣血修煉值！";
+      addExpAndCheckLevel(ss, player, expAcquire);
+    } else {
+      message = "領取成功！獲得卡牌: " + getCardName(ss, cardId);
+    }
     updatePlayerRow(ss, player.rowNum, player);
   }
 
@@ -1702,6 +1710,7 @@ function claimTask(ss, playerId, gridIndex, password) {
   var expDup = getSystemConfigNum(ss, "exp_task_duplicate", 50);
   var expBingoLine = getSystemConfigNum(ss, "exp_bingo_line", 150);
   var expBingoDup = getSystemConfigNum(ss, "exp_bingo_duplicate", 50);
+  var expAcquire = getSystemConfigNum(ss, "exp_card_acquire", 0);
 
   var expReward = expBase;
   var rewardCardId = getRewardCardFromSheets(ss, Number(gridIndex));
@@ -1713,7 +1722,12 @@ function claimTask(ss, playerId, gridIndex, password) {
       rewardMessage += " (重複獲得「" + getCardName(ss, rewardCardId) + "」，自動轉換為 " + expDup + " 經驗！)";
     } else {
       player.inventory[rewardCardId] = 1;
-      rewardMessage += " (額外獲得卡牌「" + getCardName(ss, rewardCardId) + "」)";
+      if (expAcquire > 0) {
+        expReward += expAcquire;
+        rewardMessage += " (額外獲得卡牌「" + getCardName(ss, rewardCardId) + "」，初次收集獎勵 +" + expAcquire + " 經驗！)";
+      } else {
+        rewardMessage += " (額外獲得卡牌「" + getCardName(ss, rewardCardId) + "」)";
+      }
     }
   }
 
@@ -1725,7 +1739,7 @@ function claimTask(ss, playerId, gridIndex, password) {
   if (bingoLineCount > oldBingoCount) {
     var lineDiff = bingoLineCount - oldBingoCount;
     var lineExp = lineDiff * expBingoLine;
-    var randomCard = getRandomCardId(ss);
+    var randomCard = getBingoRewardCardId(ss);
 
     player.exp = (player.exp || 0) + lineExp;
 
@@ -1734,7 +1748,12 @@ function claimTask(ss, playerId, gridIndex, password) {
       rewardMessage += "【🎉 任務連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗，連線獎品已轉為 " + expBingoDup + " 經驗！";
     } else {
       player.inventory[randomCard] = 1;
-      rewardMessage += "【🎉 任務連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗與隨機珍稀卡牌「" + getCardName(ss, randomCard) + "」！";
+      if (expAcquire > 0) {
+        player.exp = (player.exp || 0) + expAcquire;
+        rewardMessage += "【🎉 任務連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗與隨機珍稀卡牌「" + getCardName(ss, randomCard) + "」，初次收集獎勵 +" + expAcquire + " 經驗！";
+      } else {
+        rewardMessage += "【🎉 任務連線成功 " + lineDiff + " 條！】再獲得 " + lineExp + " 經驗與隨機珍稀卡牌「" + getCardName(ss, randomCard) + "」！";
+      }
     }
     tasks.bingo_count = bingoLineCount;
   }
@@ -1784,6 +1803,32 @@ function checkBingoLines(tasks) {
   if (grid[3] && grid[6] && grid[9] && grid[12]) lines++;
 
   return lines;
+}
+
+// 取得連線獎勵卡牌
+function getBingoRewardCardId(ss) {
+  var rewardConfig = getSystemConfig(ss, "bingo_reward_card");
+  if (!rewardConfig) rewardConfig = "random";
+  rewardConfig = rewardConfig.trim();
+
+  if (rewardConfig === "random" || rewardConfig === "all" || rewardConfig === "") {
+    return getRandomCardId(ss);
+  }
+
+  if (rewardConfig.indexOf(",") !== -1) {
+    var list = rewardConfig.split(",");
+    var validList = [];
+    for (var i = 0; i < list.length; i++) {
+      var item = list[i].trim();
+      if (item) validList.push(item);
+    }
+    if (validList.length > 0) {
+      var idx = Math.floor(Math.random() * validList.length);
+      return validList[idx];
+    }
+  }
+
+  return rewardConfig;
 }
 
 // 隨機獲取卡牌 ID

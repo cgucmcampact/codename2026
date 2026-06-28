@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight, CheckCircle2, Info, Sparkles, Leaf
 } from 'lucide-react';
 import gorillaBeast from '../assets/gorilla_beast.png';
+import cardPlaceholder from '../assets/card_placeholder.png';
 
 // 8個裝備孔位在 340x340 畫布上的百分比坐標，精確對齊右側設計圖
 const SLOT_RENDER_CONFIG = [
@@ -289,7 +290,8 @@ export default function EquipTab({ player, onPlayerUpdate }) {
     return Object.keys(player.inventory || {})
       .map(id => ({ id, ...CARDS[id], count: player.inventory[id] }))
       .filter(card => {
-        if (card.type !== 'equipment') return false;
+        const isEquip = card.type === 'equipment' || card.type === '裝備';
+        if (!isEquip) return false;
         if (selectedFilterTab !== 'all') {
           if (selectedFilterTab === 'sub') {
             if (card.sub_type !== 'sub') return false;
@@ -526,6 +528,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                       >
                         {currentCard.image_url ? (
                           <img
+                            key={currentCard.id}
                             src={convertGoogleDriveUrl(currentCard.image_url)}
                             alt={currentCard.name}
                             className="absolute inset-0 w-full h-full object-cover"
@@ -701,11 +704,15 @@ export default function EquipTab({ player, onPlayerUpdate }) {
                 {activeCardDetail.name}
               </h3>
 
-              {activeCardDetail.image_url && (
-                <div className="tcm-card-detail-img-wrapper">
-                  <img src={convertGoogleDriveUrl(activeCardDetail.image_url)} alt={activeCardDetail.name} />
-                </div>
-              )}
+              <div className="tcm-card-detail-img-wrapper">
+                <img
+                  src={activeCardDetail.image_url ? convertGoogleDriveUrl(activeCardDetail.image_url) : cardPlaceholder}
+                  alt={activeCardDetail.name}
+                  onError={(e) => {
+                    e.target.src = cardPlaceholder;
+                  }}
+                />
+              </div>
 
               <div className="tcm-card-detail-desc">
                 {activeCardDetail.description}
@@ -714,7 +721,7 @@ export default function EquipTab({ player, onPlayerUpdate }) {
               <div className="tcm-card-detail-grid">
                 <div className="tcm-card-detail-item">
                   <span className="tcm-card-detail-label">類型</span>
-                  <span className="tcm-card-detail-value">{activeCardDetail.type === 'equipment' ? '裝備配戴' : '技能'}</span>
+                  <span className="tcm-card-detail-value">{(activeCardDetail.type === 'equipment' || activeCardDetail.type === '裝備') ? '裝備配戴' : '技能'}</span>
                 </div>
                 <div className="tcm-card-detail-item">
                   <span className="tcm-card-detail-label">稀有度</span>

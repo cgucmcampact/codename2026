@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { CARDS, RARITY_COLORS, detectRewardCards, convertGoogleDriveUrl } from '../services/cardData';
 import { ApiService } from '../services/api';
 import { Sparkles, Trash2, Plus, ShieldAlert, Award, ChevronLeft, ChevronRight, QrCode, Camera, CameraOff, X, Info, Leaf } from 'lucide-react';
+import cardPlaceholder from '../assets/card_placeholder.png';
 
 export default function SkillsTab({ player, onPlayerUpdate }) {
   const [deck, setDeck] = useState(Array(10).fill(""));
@@ -246,7 +247,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
     const deckCounts = getDeckCardCounts();
     return Object.keys(player.inventory || {})
       .map(id => ({ id, ...CARDS[id], totalCount: player.inventory[id] }))
-      .filter(card => card.type === 'skill')
+      .filter(card => card.type === 'skill' || card.type === '技能')
       .map(card => {
         const inDeckCount = deckCounts[card.id] || 0;
         return {
@@ -292,6 +293,9 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                 alt={card.name}
                 className="absolute inset-0 w-full h-full object-cover flex-shrink-0"
                 style={{ borderRadius: '7px', zIndex: 0 }}
+                onError={(e) => {
+                  e.target.src = cardPlaceholder;
+                }}
               />
             ) : (
               <span className={`tcm-skill-slot-name ${cardRarity.text}`}>{card.name}</span>
@@ -471,15 +475,20 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                       <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                         {currentCard.image_url ? (
                           <img
+                            key={currentCard.id}
                             src={convertGoogleDriveUrl(currentCard.image_url)}
                             alt={currentCard.name}
                             className="absolute inset-0 w-full h-full object-cover"
                             onError={(e) => {
-                              e.target.style.display = 'none';
+                              e.target.src = cardPlaceholder;
                             }}
                           />
                         ) : (
-                          <Leaf size={28} className="text-amber-600/20 animate-pulse" />
+                          <img
+                            src={cardPlaceholder}
+                            alt="placeholder"
+                            className="absolute inset-0 w-full h-full object-cover opacity-60"
+                          />
                         )}
                       </div>
                     </div>
@@ -661,11 +670,15 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
                 {activeCardDetail.name}
               </h3>
 
-              {activeCardDetail.image_url && (
-                <div className="tcm-card-detail-img-wrapper">
-                  <img src={activeCardDetail.image_url} alt={activeCardDetail.name} />
-                </div>
-              )}
+              <div className="tcm-card-detail-img-wrapper">
+                <img
+                  src={activeCardDetail.image_url ? convertGoogleDriveUrl(activeCardDetail.image_url) : cardPlaceholder}
+                  alt={activeCardDetail.name}
+                  onError={(e) => {
+                    e.target.src = cardPlaceholder;
+                  }}
+                />
+              </div>
 
               <div className="tcm-card-detail-desc">
                 {activeCardDetail.description}
@@ -674,7 +687,7 @@ export default function SkillsTab({ player, onPlayerUpdate }) {
               <div className="tcm-card-detail-grid">
                 <div className="tcm-card-detail-item">
                   <span className="tcm-card-detail-label">類型</span>
-                  <span className="tcm-card-detail-value">{activeCardDetail.type === 'equipment' ? '裝備加護' : '方劑技能'}</span>
+                  <span className="tcm-card-detail-value">{(activeCardDetail.type === 'equipment' || activeCardDetail.type === '裝備') ? '裝備' : '技能'}</span>
                 </div>
                 <div className="tcm-card-detail-item">
                   <span className="tcm-card-detail-label">稀有度</span>

@@ -622,13 +622,19 @@ const LocalMockService = {
     let expGained = 0;
 
     const expQrDuplicate = getLocalConfigNum('exp_qr_duplicate', 80);
+    const expAcquire = getLocalConfigNum('exp_card_acquire', 0);
     if (player.inventory[cardId]) {
       expGained = expQrDuplicate;
       message = `領取成功！已擁有此卡牌 [${CARDS[cardId]?.name || cardId}]，自動轉換為 ${expGained} 點經驗值！`;
       addLocalExp(player, expGained);
     } else {
       player.inventory[cardId] = 1;
-      message = `領取成功！獲得卡牌: ${CARDS[cardId]?.name || cardId}`;
+      if (expAcquire > 0) {
+        message = `領取成功！獲得卡牌: ${CARDS[cardId]?.name || cardId}，獲得初次收集獎勵 ${expAcquire} 點經驗值！`;
+        addLocalExp(player, expAcquire);
+      } else {
+        message = `領取成功！獲得卡牌: ${CARDS[cardId]?.name || cardId}`;
+      }
       saveLocalPlayer(playerId, player);
     }
 
@@ -716,6 +722,7 @@ const LocalMockService = {
     const expDup = getLocalConfigNum('exp_task_duplicate', 50);
     const expBingoLine = getLocalConfigNum('exp_bingo_line', 150);
     const expBingoDup = getLocalConfigNum('exp_bingo_duplicate', 50);
+    const expAcquire = getLocalConfigNum('exp_card_acquire', 0);
 
     let expReward = expBase;
     const rewardCardId = getRewardCardForGrid(Number(gridIndex));
@@ -727,7 +734,12 @@ const LocalMockService = {
         rewardMessage += ` (重複獲得「${CARDS[rewardCardId]?.name || rewardCardId}」，自動轉換為 ${expDup} 點經驗值！)`;
       } else {
         player.inventory[rewardCardId] = 1;
-        rewardMessage += ` (額外獲得卡牌「${CARDS[rewardCardId]?.name || rewardCardId}」)`;
+        if (expAcquire > 0) {
+          expReward += expAcquire;
+          rewardMessage += ` (額外獲得卡牌「${CARDS[rewardCardId]?.name || rewardCardId}」，初次收集獎勵 +${expAcquire} 經驗！)`;
+        } else {
+          rewardMessage += ` (額外獲得卡牌「${CARDS[rewardCardId]?.name || rewardCardId}」)`;
+        }
       }
     }
 
@@ -739,7 +751,7 @@ const LocalMockService = {
     if (bingoCount > oldBingoCount) {
       const lineDiff = bingoCount - oldBingoCount;
       const lineExp = lineDiff * expBingoLine;
-      const randomCard = getRandomLocalCardId();
+      const randomCard = getLocalBingoRewardCardId();
 
       player.exp = (player.exp || 0) + lineExp;
       if (player.inventory[randomCard]) {
@@ -747,7 +759,12 @@ const LocalMockService = {
         rewardMessage += `\n【🎉 連線成功 ${lineDiff} 條！】再獲得 ${lineExp} 經驗，連線卡片獎勵已轉換為 ${expBingoDup} 經驗！`;
       } else {
         player.inventory[randomCard] = 1;
-        rewardMessage += `\n【🎉 連線成功 ${lineDiff} 條！】再獲得 ${lineExp} 經驗與隨機卡片「${CARDS[randomCard]?.name || randomCard}」！`;
+        if (expAcquire > 0) {
+          player.exp = (player.exp || 0) + expAcquire;
+          rewardMessage += `\n【🎉 連線成功 ${lineDiff} 條！】再獲得 ${lineExp} 經驗與隨機卡片「${CARDS[randomCard]?.name || randomCard}」，初次收集獎勵 +${expAcquire} 經驗！`;
+        } else {
+          rewardMessage += `\n【🎉 連線成功 ${lineDiff} 條！】再獲得 ${lineExp} 經驗與隨機卡片「${CARDS[randomCard]?.name || randomCard}」！`;
+        }
       }
       player.tasks_progress.bingo_count = bingoCount;
     }
@@ -1146,6 +1163,31 @@ function checkLocalBingoLines(tasks) {
   if (grid[0] && grid[5] && grid[10] && grid[15]) lines++;
   if (grid[3] && grid[6] && grid[9] && grid[12]) lines++;
   return lines;
+}
+
+function getLocalBingoRewardCardId() {
+  const settingsVal = localStorage.getItem('sa_cfg_bingo_reward_card');
+  let rewardConfig = settingsVal !== null ? settingsVal : 'random';
+  rewardConfig = rewardConfig.trim();
+
+  if (rewardConfig === 'random' || rewardConfig === 'all' || rewardConfig === '') {
+    return getRandomLocalCardId();
+  }
+
+  if (rewardConfig.indexOf(',') !== -1) {
+    const list = rewardConfig.split(',');
+    const validList = [];
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i].trim();
+      if (item) validList.push(item);
+    }
+    if (validList.length > 0) {
+      const idx = Math.floor(Math.random() * validList.length);
+      return validList[idx];
+    }
+  }
+
+  return rewardConfig;
 }
 
 function getRandomLocalCardId() {

@@ -19,6 +19,8 @@
 | `exp_qr_duplicate` | `80` | 掃描 QR 碼領取重複卡牌時，轉換為經驗值的補償數值。 |
 | `exp_bingo_line` | `150` | 藥斗任務連線（Bingo）一條時所獲得的經驗值。 |
 | `exp_bingo_duplicate`| `50` | 連線隨機贈卡重複時，轉換為經驗值的補償數值。 |
+| `exp_card_acquire`  | `0` | 初次收到卡片（收集到新卡）時所獲得的額外經驗值。預設為 0。 |
+| `bingo_reward_card` | `random` | 任務連線（Bingo）所贈送的卡牌 ID。可設定為 `random`（隨機）、單一卡牌 ID（如 `skill_card_01`）或以逗號分隔的複數卡牌 ID 供系統隨機抽選。 |
 
 ---
 

@@ -6,6 +6,7 @@ import {
   Swords, Trophy, Users, RefreshCw,
   Hourglass, AlertCircle, PlayCircle, Info
 } from 'lucide-react';
+import cardPlaceholder from '../assets/card_placeholder.png';
 
 export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onClearBattleId, onStartBattle, onSentInvitationChange }) {
   const [battleId, setBattleId] = useState(() => {
@@ -646,11 +647,15 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
             {activeCardDetail.name}
           </h3>
 
-          {activeCardDetail.image_url && (
-            <div className="tcm-card-detail-img-wrapper">
-              <img src={activeCardDetail.image_url} alt={activeCardDetail.name} />
-            </div>
-          )}
+          <div className="tcm-card-detail-img-wrapper">
+            <img
+              src={activeCardDetail.image_url ? convertGoogleDriveUrl(activeCardDetail.image_url) : cardPlaceholder}
+              alt={activeCardDetail.name}
+              onError={(e) => {
+                e.target.src = cardPlaceholder;
+              }}
+            />
+          </div>
 
           <div className="tcm-card-detail-desc">
             {activeCardDetail.description}
@@ -659,7 +664,7 @@ export default function BattleTab({ player, onPlayerUpdate, activeBattleId, onCl
           <div className="tcm-card-detail-grid">
             <div className="tcm-card-detail-item">
               <span className="tcm-card-detail-label">類型</span>
-              <span className="tcm-card-detail-value">{activeCardDetail.type === 'equipment' ? '裝備加護' : '方劑技能'}</span>
+              <span className="tcm-card-detail-value">{(activeCardDetail.type === 'equipment' || activeCardDetail.type === '裝備') ? '裝備加護' : '方劑技能'}</span>
             </div>
             <div className="tcm-card-detail-item">
               <span className="tcm-card-detail-label">稀有度</span>

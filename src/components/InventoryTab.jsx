@@ -6,6 +6,7 @@ import {
   Briefcase, CheckCircle2, Lock, Play, ClipboardCheck,
   Camera, CameraOff, QrCode, Sparkles, X, Gift, Leaf
 } from 'lucide-react';
+import cardPlaceholder from '../assets/card_placeholder.png';
 
 export default function InventoryTab({ player, onPlayerUpdate }) {
   const [activeSubTab, setActiveSubTab] = useState('inventory'); // 'inventory' | 'bingo'
@@ -261,7 +262,7 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
       return {
         name: taskConfig.name,
         description: taskConfig.description,
-        rewardText: rewardCard ? `${rewardCard.name} (${rewardCard.type === 'equipment' ? '加護' : '方劑'})` : '30 經驗值'
+        rewardText: rewardCard ? `${rewardCard.name} (${(rewardCard.type === 'equipment' || rewardCard.type === '裝備') ? '加護' : '方劑'})` : '30 經驗值'
       };
     }
     // Fallback 靜態中草藥數據
@@ -294,7 +295,11 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
       const meta = CARDS[cardId];
       if (!meta) return;
 
-      if (customFilter !== 'all' && meta.type !== customFilter) return;
+      if (customFilter !== 'all') {
+        const isMatch = (customFilter === 'equipment' && (meta.type === 'equipment' || meta.type === '裝備')) ||
+                        (customFilter === 'skill' && (meta.type === 'skill' || meta.type === '技能'));
+        if (!isMatch) return;
+      }
 
       cardItems.push({ cardId, count, ...meta });
     });
@@ -308,7 +313,7 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
     }
 
     return cardItems.map(card => {
-      const isEquipment = card.type === 'equipment';
+      const isEquipment = card.type === 'equipment' || card.type === '裝備';
       const cardRarity = RARITY_COLORS[card.rarity] || RARITY_COLORS["綠色"];
 
       return (
@@ -328,11 +333,18 @@ export default function InventoryTab({ player, onPlayerUpdate }) {
                   src={convertGoogleDriveUrl(card.image_url)}
                   alt={card.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                  onError={(e) => {
+                    e.target.src = cardPlaceholder;
+                  }}
                 />
               </div>
             ) : (
-              <div className="w-full h-24 sm:h-32 rounded-lg bg-gradient-to-br from-amber-950/10 to-emerald-950/10 border border-amber-900/10 flex items-center justify-center relative">
-                <Leaf size={20} className="text-amber-600/30 animate-pulse" />
+              <div className="w-full h-24 sm:h-32 rounded-lg overflow-hidden border border-amber-955 relative">
+                <img
+                  src={cardPlaceholder}
+                  alt="placeholder"
+                  className="w-full h-full object-cover opacity-60"
+                />
               </div>
             )}
 
